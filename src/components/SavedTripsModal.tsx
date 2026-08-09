@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X, Bookmark, Calendar, MapPin, Trash2, ArrowRight, Compass } from 'lucide-react';
 import { TripPlan } from '../types/travel';
 
@@ -17,18 +17,40 @@ export const SavedTripsModal: React.FC<SavedTripsModalProps> = ({
   onSelectTrip,
   onDeleteTrip
 }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="modal-backdrop">
-      <div className="saved-modal-content glass-panel animate-fade-in">
+    <div className="modal-backdrop" onMouseDown={onClose}>
+      <div
+        className="saved-modal-content glass-panel animate-fade-in"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="saved-trips-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
         <div className="modal-header">
           <div className="modal-header-left">
             <Bookmark size={20} className="text-cyan" />
-            <h2 className="modal-title">Moje Zapisane Plany Podróży</h2>
+            <h2 className="modal-title" id="saved-trips-title">Moje Zapisane Plany Podróży</h2>
             <span className="badge badge-cyan">{savedTrips.length}</span>
           </div>
-          <button className="btn-close-modal" onClick={onClose}>
+          <button className="btn-close-modal" onClick={onClose} aria-label="Zamknij zapisane plany">
             <X size={20} />
           </button>
         </div>
@@ -83,18 +105,6 @@ export const SavedTripsModal: React.FC<SavedTripsModalProps> = ({
       </div>
 
       <style>{`
-        .modal-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.75);
-          backdrop-filter: blur(8px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 2000;
-          padding: 20px;
-        }
-
         .saved-modal-content {
           max-width: 720px;
           width: 100%;
@@ -102,45 +112,6 @@ export const SavedTripsModal: React.FC<SavedTripsModalProps> = ({
           display: flex;
           flex-direction: column;
           padding: 28px;
-        }
-
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-          padding-bottom: 14px;
-          border-bottom: 1px solid var(--border-color);
-        }
-
-        .modal-header-left {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .modal-title {
-          font-size: 1.3rem;
-        }
-
-        .btn-close-modal {
-          background: transparent;
-          border: none;
-          color: var(--text-muted);
-          cursor: pointer;
-          padding: 6px;
-          display: flex;
-          align-items: center;
-          transition: color 0.2s ease;
-        }
-
-        .btn-close-modal:hover {
-          color: var(--text-primary);
-        }
-
-        .modal-body {
-          flex: 1;
-          overflow-y: auto;
         }
 
         .empty-saved-state {

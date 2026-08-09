@@ -1,43 +1,49 @@
 :root {
-  /* Core Color Palette - Luxury Deep Navy & Vibrant Cyan/Amber */
-  --bg-primary: #0a0f1d;
-  --bg-secondary: #0f172a;
-  --bg-card: rgba(19, 29, 54, 0.7);
-  --bg-card-hover: rgba(28, 41, 75, 0.85);
-  --bg-glass: rgba(15, 23, 42, 0.65);
+  /* Stitch-inspired editorial travel palette: quiet charcoal + one teal accent. */
+  --bg-primary: #111514;
+  --bg-secondary: #171c1b;
+  --bg-card: rgba(29, 35, 33, 0.88);
+  --bg-card-hover: rgba(36, 43, 41, 0.96);
+  --bg-glass: rgba(17, 21, 20, 0.86);
   
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(56, 189, 248, 0.35);
+  --border-color: rgba(239, 242, 240, 0.11);
+  --border-glow: rgba(58, 169, 159, 0.35);
 
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-highlight: #38bdf8;
+  --text-primary: #f0f2ef;
+  --text-secondary: #a9b0ac;
+  --text-muted: #737d78;
+  --text-highlight: #3aa99f;
 
-  --accent-cyan: #38bdf8;
-  --accent-blue: #3b82f6;
+  --accent-color: #3aa99f;
+  --accent-soft: rgba(58, 169, 159, 0.14);
+  --input-bg: rgba(17, 21, 20, 0.82);
+  --input-bg-focus: rgba(17, 21, 20, 0.96);
+
+  --accent-cyan: #3aa99f;
+  --accent-blue: #3aa99f;
   --accent-emerald: #10b981;
   --accent-amber: #f59e0b;
   --accent-rose: #f43f5e;
   --accent-purple: #a855f7;
 
-  --gradient-brand: linear-gradient(135deg, #38bdf8 0%, #3b82f6 50%, #818cf8 100%);
+  --gradient-brand: #3aa99f;
   --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #f43f5e 100%);
   --gradient-emerald: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
   --gradient-dark: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(10, 15, 29, 0.95) 100%);
   --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
 
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 16px 36px -8px rgba(0, 0, 0, 0.55);
-  --shadow-glow: 0 0 25px rgba(56, 189, 248, 0.25);
+  --shadow-sm: 0 4px 14px rgba(5, 8, 7, 0.2);
+  --shadow-md: 0 18px 48px -24px rgba(5, 8, 7, 0.72);
+  --shadow-lg: 0 30px 70px -34px rgba(5, 8, 7, 0.82);
+  --shadow-glow: var(--shadow-md);
 
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, monospace;
   
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
   --radius-full: 9999px;
 
   --transition-fast: 0.15s ease;
@@ -47,19 +53,25 @@
 
 /* Light Theme Variables */
 [data-theme='light'] {
-  --bg-primary: #f1f5f9;
-  --bg-secondary: #ffffff;
-  --bg-card: rgba(255, 255, 255, 0.85);
-  --bg-card-hover: rgba(255, 255, 255, 0.98);
-  --bg-glass: rgba(255, 255, 255, 0.75);
+  --bg-primary: #f2f3ef;
+  --bg-secondary: #fafbf8;
+  --bg-card: rgba(250, 251, 248, 0.9);
+  --bg-card-hover: #ffffff;
+  --bg-glass: rgba(242, 243, 239, 0.88);
   
   --border-color: rgba(0, 0, 0, 0.08);
   --border-glow: rgba(2, 132, 199, 0.35);
 
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-highlight: #0284c7;
+  --text-primary: #17201d;
+  --text-secondary: #52605b;
+  --text-muted: #7c8984;
+  --text-highlight: #247f77;
+  --accent-color: #247f77;
+  --accent-soft: rgba(36, 127, 119, 0.11);
+  --accent-cyan: #247f77;
+  --accent-blue: #247f77;
+  --input-bg: rgba(255, 255, 255, 0.72);
+  --input-bg-focus: #ffffff;
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 8px 24px -4px rgba(0, 0, 0, 0.08);
@@ -92,7 +104,7 @@ body::before {
   right: -100px;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.12) 0%, rgba(56, 189, 248, 0) 70%);
+  background: radial-gradient(circle, rgba(58, 169, 159, 0.08) 0%, rgba(58, 169, 159, 0) 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -104,7 +116,7 @@ body::after {
   left: -150px;
   width: 700px;
   height: 700px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0) 70%);
+  background: radial-gradient(circle, rgba(197, 171, 126, 0.05) 0%, rgba(197, 171, 126, 0) 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -115,6 +127,60 @@ body::after {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+/* Shared modal primitives. Keep these global: every modal must work independently. */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-title {
+  font-size: 1.3rem;
+}
+
+.btn-close-modal {
+  display: flex;
+  align-items: center;
+  padding: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.btn-close-modal:hover {
+  color: var(--text-primary);
+}
+
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 /* Typography */
@@ -138,8 +204,8 @@ a {
 /* Glassmorphic Container */
 .glass-panel {
   background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
@@ -168,19 +234,19 @@ a {
 }
 
 .btn-primary {
-  background: var(--gradient-brand);
+  background: var(--accent-color);
   color: #ffffff;
-  box-shadow: 0 4px 18px rgba(56, 189, 248, 0.35);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(56, 189, 248, 0.5);
-  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05);
 }
 
 .btn-primary:active {
-  transform: translateY(0);
+  transform: translateY(1px) scale(0.99);
 }
 
 .btn-secondary {
@@ -287,7 +353,7 @@ input[type="password"],
 textarea,
 select {
   width: 100%;
-  background: rgba(15, 23, 42, 0.8);
+  background: var(--input-bg);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
   padding: 12px 16px;
@@ -304,8 +370,8 @@ input[type="password"]:focus,
 textarea:focus,
 select:focus {
   border-color: var(--accent-cyan);
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
-  background: rgba(15, 23, 42, 0.95);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  background: var(--input-bg-focus);
 }
 
 /* Custom Scrollbar */

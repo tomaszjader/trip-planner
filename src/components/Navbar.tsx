@@ -38,6 +38,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Action Controls */}
         <div className="navbar-actions">
+          <button
+            className="btn btn-secondary btn-nav-action btn-ai-status"
+            onClick={onOpenSettingsModal}
+            title="Kliknij, aby zmienić model AI lub klucz API"
+          >
+            <Sparkles size={14} className="text-cyan animate-pulse" />
+            <span className="ai-model-label">Model AI</span>
+          </button>
+
           {activeTrip && (
             <button 
               className="btn btn-secondary btn-nav-action"
@@ -64,7 +73,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <button 
             className="btn btn-icon"
             onClick={onOpenSettingsModal}
-            title="Ustawienia AI & Klucz API"
+            title="Ustawienia AI & Klucze API"
           >
             <Settings size={18} />
           </button>
@@ -188,6 +197,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           }
           .brand-subtitle {
             display: none;
+          }
+          .ai-model-label {
+            display: none;
+          }
+          .btn-ai-status {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+          }
+          .navbar-actions {
+            gap: 6px;
           }
         }
       `}</style>

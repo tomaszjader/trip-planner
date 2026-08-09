@@ -135,9 +135,15 @@ export interface ChatMessage {
   isGenerating?: boolean;
 }
 
+export type AIProvider = 'gemini' | 'openai';
+
 export interface AppSettings {
+  aiProvider: AIProvider;
   geminiApiKey: string;
-  selectedModel: 'gemini-1.5-flash' | 'gemini-2.0-flash' | 'gemini-1.5-pro';
+  openaiApiKey: string;
+  selectedGeminiModel: string;
+  selectedOpenAIModel: string;
+  selectedModel: string;
   theme: 'dark' | 'light';
   language: 'pl' | 'en';
 }

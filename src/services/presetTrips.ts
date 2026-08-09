@@ -1,4 +1,4 @@
-import { TripPlan, TravelPreferences, DayPlan } from '../types/travel';
+import { TripPlan, TravelPreferences, DayPlan, ActivitySpot } from '../types/travel';
 
 export const PRESET_TRIPS: Record<string, TripPlan> = {
   'rzym': {
@@ -1042,18 +1042,127 @@ export const PRESET_TRIPS: Record<string, TripPlan> = {
  * Universal Intelligent Trip Builder
  * Generates an authentic, structured, and realistic travel plan for ANY destination in the world.
  */
+// Rich Database of Verified Real Destinations with Exact GPS Coordinates and Authentic Landmarks
+interface CityData {
+  lat: number;
+  lng: number;
+  country: string;
+  currency: string;
+  img: string;
+  spots: { title: string; category: string; desc: string; tip: string; lat: number; lng: number; address: string }[];
+  dishes: { name: string; type: 'dish' | 'street_food' | 'dessert'; desc: string; why: string; price: string; img: string }[];
+  restaurants: { name: string; cat: 'traditional' | 'street_food' | 'fine_dining' | 'cafe'; desc: string; dish: string; price: '$' | '$$' | '$$$'; addr: string; lat: number; lng: number }[];
+}
+
+const CITY_DATABASE: Record<string, CityData> = {
+  'paryż': {
+    lat: 48.8566,
+    lng: 2.3522,
+    country: 'Francja',
+    currency: 'EUR',
+    img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80',
+    spots: [
+      { title: 'Wieża Eiffla & Pola Marsowe', category: 'Ikona Świata', desc: 'Symbol Paryża, wjazd na szczyt z widokiem na Sekwanę i całą metropolię.', tip: 'Zarezerwuj wjazd na szczyt z wyprzedzeniem; wieczorem wieża migocze co godzinę.', lat: 48.8584, lng: 2.2945, address: 'Champ de Mars, 5 Av. Anatole France, 75007 Paris' },
+      { title: 'Muzeum Luwr & Szklana Piramida', category: 'Muzeum Sztuki', desc: 'Mona Lisa, Wenus z Milo i tysiące arcydzieł w dawnym pałacu królewskim.', tip: 'Wchodź przez wejście Carrousel du Louvre, by uniknąć najdłuższych kolejek.', lat: 48.8606, lng: 2.3376, address: 'Rue de Rivoli, 75001 Paris' },
+      { title: 'Montmartre & Bazylika Sacré-Cœur', category: 'Bohema & Panorama', desc: 'Wzgórze artystów, malowniczy Place du Tertre i biała bazylika z widokiem na Paryż.', tip: 'Wypij kawę w bocznej uliczce Rue de l\'Abreuvoir.', lat: 48.8867, lng: 2.3431, address: '35 Rue du Chevalier de la Barre, 75018 Paris' },
+      { title: 'Katedra Notre-Dame & Wyspa Île de la Cité', category: 'Zabytek Gotycki', desc: 'Kolebka Paryża, odrestaurowana gotycka katedra i urokliwe bulwary Sekwany.', tip: 'Przejdź przez Pont Neuf i kup książkę od bukinistów nad rzeką.', lat: 48.8530, lng: 2.3499, address: '6 Parvis Notre-Dame, 75004 Paris' },
+      { title: 'Dzielnica Łacińska & Ogród Luksemburski', category: 'Oaza & Historia', desc: 'Historyczne uliczki uniwersyteckie, Panteon i relaks przy fontannie Medyceuszy.', tip: 'Kup świeże makaroniki w Pierre Hermé przy Rue Bonaparte.', lat: 48.8462, lng: 2.3372, address: '75006 Paris' },
+      { title: 'Łuk Triumfalny & Pola Elizejskie', category: 'Monument & Spacer', desc: 'Monumentalny łuk Napoleona z tarasem widokowym na 12 promienistych alei.', tip: 'Widok na oświetlony Paryż o zmierzchu z dachu łuku jest zachwycający.', lat: 48.8738, lng: 2.2950, address: 'Pl. Charles de Gaulle, 75008 Paris' }
+    ],
+    dishes: [
+      { name: 'Boeuf Bourguignon', type: 'dish', desc: 'Tradycyjna wołowina duszona godzinami w czerwonym winie burgundzkim z pieczarkami i marchewką.', why: 'Klasyk francuskiej sztuki kulinarnej.', price: '18 - 26 EUR', img: 'https://images.unsplash.com/photo-1534939561126-855b8675edd7?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Chrupiący Croissant & Café au Lait', type: 'dessert', desc: 'Maślany, listkujący się rogalik pieczony z francuskiego masła AOP z poranną kawą.', why: 'Niezbędny początek każdego paryskiego poranka.', price: '3 - 5 EUR', img: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Naleśniki Crêpes Suzette', type: 'street_food', desc: 'Cienkie naleśniki z karmelem, sokiem ze świeżych pomarańczy i likierem Grand Marnier.', why: 'Kultowy deser paryskich bistro.', price: '5 - 9 EUR', img: 'https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=800&q=80' }
+    ],
+    restaurants: [
+      { name: 'Bouillon Chartier', cat: 'traditional', desc: 'Zabytkowa restauracja z 1896 roku w stylu belle époque serwująca tradycyjne dania w przystępnych cenach.', dish: 'Confit de Canard & zupa cebulowa', price: '$$', addr: '7 Rue du Faubourg Montmartre, 75009 Paris', lat: 48.8718, lng: 2.3429 },
+      { name: 'Le Comptoir du Relais', cat: 'fine_dining', desc: 'Słynne bistro szefa Yves Camdeborde w sercu Saint-Germain-des-Prés.', dish: 'Terrine de foie gras & pieczony okoń', price: '$$$', addr: '9 Carrefour de l\'Odéon, 75006 Paris', lat: 48.8520, lng: 2.3386 },
+      { name: 'L\'As du Fallafel', cat: 'street_food', desc: 'Legendarny lokal w dzielnicy Le Marais z najlepszym falafelem w Europie.', dish: 'Pita Falafel Spécial', price: '$', addr: '34 Rue des Rosiers, 75004 Paris', lat: 48.8574, lng: 2.3592 }
+    ]
+  },
+  'lizbona': {
+    lat: 38.7223,
+    lng: -9.1393,
+    country: 'Portugalia',
+    currency: 'EUR',
+    img: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=1600&q=80',
+    spots: [
+      { title: 'Klasztor Hieronimitów & Belém', category: 'Zabytek UNESCO', desc: 'Perła stylu manuelińskiego z grobowcem Vasco da Gamy.', tip: 'Wstęp do kościoła jest darmowy, bilety do klasztoru kup online.', lat: 38.6979, lng: -9.2067, address: 'Praça do Império, 1400-206 Lisboa' },
+      { title: 'Torre de Belém & Pomnik Odkrywców', category: 'Ikona Portugalii', desc: 'Militarna wieża strażnicza nad brzegiem Tagu, symbol ery wielkich odkryć geograficznych.', tip: 'Świetne miejsce na zdjęcia o zachodzie słońca.', lat: 38.6916, lng: -9.2160, address: 'Av. Brasília, 1400-038 Lisboa' },
+      { title: 'Dzielnica Alfama & Miradouro de Santa Luzia', category: 'Kultura & Panorama', desc: 'Najstarsza dzielnica z białymi domami, kaflami azulejos i punktem widokowym z bugenwillą.', tip: 'Przejedź się zabytkowym żółtym tramwajem 28 wczesnym rankiem.', lat: 38.7121, lng: -9.1305, address: 'Largo Santa Luzia, 1100-487 Lisboa' },
+      { title: 'Zamek św. Jerzego (Castelo de São Jorge)', category: 'Twierdza & Widok 360°', desc: 'Maurowiecka forteca na najwyższym wzgórzu Lizbony z pawiami spacerującymi po murach.', tip: 'Zobacz panoramę mostu 25 Kwietnia i rzeki Tag.', lat: 38.7139, lng: -9.1334, address: 'R. de Santa Cruz do Castelo, 1100-129 Lisboa' },
+      { title: 'Praça do Comércio & Dzielnica Baixa', category: 'Plac & Nabrzeże', desc: 'Monumentalny plac otwarty na rzekę Tag z Łukiem Triumfalnym Rua Augusta.', tip: 'Wypij likier wiśniowy Ginjinha w historycznym barze A Ginjinha.', lat: 38.7075, lng: -9.1364, address: 'Praça do Comércio, 1100-148 Lisboa' }
+    ],
+    dishes: [
+      { name: 'Pastéis de Belém / Nata', type: 'dessert', desc: 'Kruche ciepłe babeczki z kremem budyniowym posypane cynamonem i cukrem pudrem.', why: 'Najsłynniejszy wypiek Portugalii według ściśle strzeżonej receptury mnichów.', price: '1.40 - 2.50 EUR', img: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Bacalhau à Brás', type: 'dish', desc: 'Szarpany dorsz z drobno siekanymi chrupiącymi ziemniakami, jajkiem, cebulą i czarnymi oliwkami.', why: 'Ulubione tradycyjne danie każdego rodowitego Portugalczyka.', price: '12 - 18 EUR', img: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Polvo à Lagareiro', type: 'dish', desc: 'Pieczona soczysta ośmiornica w obfitej ilości oliwy z oliwek z pieczonymi ziemniakami i czosnkiem.', why: 'Eksplozja smaków świeżego Atlantyku.', price: '16 - 24 EUR', img: 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?auto=format&fit=crop&w=800&q=80' }
+    ],
+    restaurants: [
+      { name: 'Time Out Market Lisboa', cat: 'street_food', desc: 'Hala gastronomiczna pod Mercado da Ribeira gromadząca najlepszych lizbońskich szefów kuchni.', dish: 'Talerz świeżych owoców morza i tatar z tuńczyka', price: '$$', addr: 'Av. 24 de Julho 49, 1200-479 Lisboa', lat: 38.7070, lng: -9.1460 },
+      { name: 'Cervejaria Ramiro', cat: 'traditional', desc: 'Kultowa tawerna z owocami morza uwielbiana przez Anthony\'ego Bourdaina.', dish: 'Krewetki tygrysie, kraby i kanapka Prego no Pão', price: '$$$', addr: 'Av. Almirante Reis 1, 1150-007 Lisboa', lat: 38.7188, lng: -9.1353 },
+      { name: 'Pastéis de Belém (od 1837)', cat: 'cafe', desc: 'Oryginalna cukiernia, w której od prawie 200 lat wypieka się oryginalne ciastka.', dish: 'Pastéis de Belém prosto z pieca', price: '$', addr: 'R. de Belém 84 92, 1300-085 Lisboa', lat: 38.6975, lng: -9.2032 }
+    ]
+  },
+  'kraków': {
+    lat: 50.0647,
+    lng: 19.9450,
+    country: 'Polska',
+    currency: 'PLN',
+    img: 'https://images.unsplash.com/photo-1519197924294-4ba991a11128?auto=format&fit=crop&w=1600&q=80',
+    spots: [
+      { title: 'Zamek Królewski na Wawelu & Katedra', category: 'Zabytek Królewski', desc: 'Siedziba królów Polski, Dzwon Zygmunta, krypty królewskie i Smocza Jama nad Wisłą.', tip: 'Dziedziniec arkadowy jest dostępny bezpłatnie.', lat: 50.0540, lng: 19.9354, address: 'Wawel 5, 31-001 Kraków' },
+      { title: 'Rynek Główny, Sukiennice & Kościół Mariacki', category: 'Serce Miasta UNESCO', desc: 'Największy średniowieczny rynek Europy z ołtarzem Wita Stwosza i hejnałem z wieży.', tip: 'Odwiedź Podziemia Rynku z multimedialną wystawą średniowiecznego Krakowa.', lat: 50.0617, lng: 19.9373, address: 'Rynek Główny, 31-042 Kraków' },
+      { title: 'Historyczna Dzielnica Kazimierz', category: 'Kultura & Zaułki', desc: 'Dawne miasto żydowskie pełne synagog, klimatycznych kawiarni, antykwariatów i muzyki klezmerskiej.', tip: 'Kup zapiekankę z pieczarkami i serem na Okrąglaku na Placu Nowym.', lat: 50.0520, lng: 19.9460, address: 'Plac Nowy, 31-056 Kraków' },
+      { title: 'Bulwary Wiślane & Kładka Ojca Bernatka', category: 'Spacer & Widok', desc: 'Malownicza kładka pieszo-rowerowa łącząca Kazimierz z Podgórzem ze wiszącymi rzeźbami akrobatów.', tip: 'Wieczorny spacer wzdłuż oświetlonego Wawelu.', lat: 50.0468, lng: 19.9479, address: 'Podgórze, 30-504 Kraków' }
+    ],
+    dishes: [
+      { name: 'Krakowski Obwarzanek & Maczanka po krakowsku', type: 'street_food', desc: 'Tradycyjny chrupiący obwarzanek z makiem lub sezamem oraz szarpana karkówka w bułce z sosem kminkowym.', why: 'Chroniony symbol krakowskiego rzemiosła piekarskiego.', price: '3 - 25 PLN', img: 'https://images.unsplash.com/photo-1549611016-3a70d82b5040?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Tradycyjne Pierogi z Wędzonym Twarogiem', type: 'dish', desc: 'Ręcznie lepione pierogi ze skwarkami i prażoną cebulką podawane z kwaśną śmietaną.', why: 'Najbardziej ceniony polski przysmak.', price: '26 - 38 PLN', img: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80' }
+    ],
+    restaurants: [
+      { name: 'Restauracja Pod Aniołami', cat: 'traditional', desc: 'Słynąca z polskiej kuchni dworskiej restauracja w XIII-wiecznych gotyckich piwnicach.', dish: 'Kaczka pieczona z jabłkami i żurawiną', price: '$$$', addr: 'ul. Grodzka 35, 31-001 Kraków', lat: 50.0579, lng: 19.9381 },
+      { name: 'Zazie Bistro', cat: 'fine_dining', desc: 'Nagradzane wyróżnieniem Michelin Bib Gourmand francusko-polskie bistro na Kazimierzu.', dish: 'Policzki wołowe w winie & gratin dauphinois', price: '$$', addr: 'ul. Józefa 34, 31-056 Kraków', lat: 50.0514, lng: 19.9470 }
+    ]
+  },
+  'londyn': {
+    lat: 51.5074,
+    lng: -0.1278,
+    country: 'Wielka Brytania',
+    currency: 'GBP',
+    img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1600&q=80',
+    spots: [
+      { title: 'Big Ben, Pałac Westminsterski & Westminster Abbey', category: 'Ikona Londynu', desc: 'Siedziba brytyjskiego parlamentu, słynny zegar oraz tysiącletnie opactwo koronacyjne królów.', tip: 'Najlepsze zdjęcia zrobisz z mostu Westminster Bridge.', lat: 51.5007, lng: -0.1246, address: 'London SW1A 0AA' },
+      { title: 'British Museum', category: 'Muzeum Świata', desc: 'Kamień z Rosetty, rzeźby Partenonu i mumie egipskie pod imponującym szklanym dachem Great Court.', tip: 'Wstęp do kolekcji stałej jest całkowicie bezpłatny!', lat: 51.5194, lng: -0.1270, address: 'Great Russell St, London WC1B 3DG' },
+      { title: 'Tower of London & Tower Bridge', category: 'Historia & Most', desc: 'Średniowieczna twierdza przechowująca Klejnoty Koronne oraz najsłynniejszy most zwodzony.', tip: 'Przejdź przez szklaną podłogę na górnej kładce Tower Bridge.', lat: 51.5055, lng: -0.0754, address: 'Tower Bridge Rd, London SE1 2UP' },
+      { title: 'Borough Market & South Bank', category: 'Kulinaria & Spacer', desc: 'Najstarszy targ żywności w Londynie pełen serów cheddar, pieczonych mięs i deserów.', tip: 'Spróbuj gorącej kanapki z roztopionym serem Raclette.', lat: 51.5055, lng: -0.0907, address: '8 Southwark St, London SE1 1TL' }
+    ],
+    dishes: [
+      { name: 'Klasyczny Fish and Chips z Puree z Groszku', type: 'dish', desc: 'Chrupiący filet z dorsza w cieście piwnym z grubymi frytkami i sosem tatarskim.', why: 'Niekwestionowany klasyk kuchni brytyjskiej.', price: '14 - 19 GBP', img: 'https://images.unsplash.com/photo-1535920527002-b35e96722eb9?auto=format&fit=crop&w=800&q=80' },
+      { name: 'Popołudniowa Herbata Afternoon Tea ze Scones', type: 'dessert', desc: 'Ciepłe bułeczki scones podawane z gęstą śmietanką clotted cream i dżemem truskawkowym.', why: 'Brytyjska tradycja arystokratyczna.', price: '18 - 35 GBP', img: 'https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&w=800&q=80' }
+    ],
+    restaurants: [
+      { name: 'Poppies Fish & Chips', cat: 'traditional', desc: 'Stylowy lokal w stylu lat 50. z najlepszą tradycyjną rybą smażoną na świeżo.', dish: 'Haddock & Chips z octem słodowym', price: '$$', addr: '6-8 Hanbury St, London E1 6QR', lat: 51.5198, lng: -0.0743 },
+      { name: 'Dishoom Covent Garden', cat: 'fine_dining', desc: 'Wybitna restauracja w stylu kawiarni bombajskich z lat 60. z genialnymi daniami curry.', dish: 'Black Daal & Chicken Ruby Curry', price: '$$', addr: '12 Upper St Martin\'s Ln, London WC2H 9FB', lat: 51.5126, lng: -0.1268 }
+    ]
+  }
+};
+
+/**
+ * Universal Intelligent Trip Builder
+ * Generates an authentic, structured, and realistic travel plan with real coordinates.
+ */
 export function generateDynamicTrip(preferences: TravelPreferences): TripPlan {
   const dest = preferences.destination.trim() || 'Paryż';
   const daysCount = Math.max(1, Math.min(preferences.durationDays || 3, 14));
   const pace = preferences.pace || 'balanced';
   const group = preferences.group || 'couple';
   const budget = preferences.budget || 'medium';
-  const cleanKey = dest.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const cleanKey = dest.toLowerCase().replace(/[^a-ząćęłńóśźż0-9]/gi, '');
 
-  // Check if we have an exact match in our curated presets
+  // 1. Check exact or partial match in PRESET_TRIPS
   for (const [key, preset] of Object.entries(PRESET_TRIPS)) {
     if (cleanKey.includes(key) || key.includes(cleanKey)) {
-      // Return preset tailored to days
       const tailoredPreset = JSON.parse(JSON.stringify(preset)) as TripPlan;
       tailoredPreset.preferences = { ...preferences };
       if (daysCount < tailoredPreset.days.length) {
@@ -1063,94 +1172,170 @@ export function generateDynamicTrip(preferences: TravelPreferences): TripPlan {
     }
   }
 
-  // Generate dynamic authentic plan
-  const coordinatesMap: Record<string, { lat: number; lng: number; country: string; currency: string; img: string }> = {
-    'paryż': { lat: 48.8566, lng: 2.3522, country: 'Francja', currency: 'EUR', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80' },
-    'paris': { lat: 48.8566, lng: 2.3522, country: 'Francja', currency: 'EUR', img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1600&q=80' },
-    'islandia': { lat: 64.1466, lng: -21.9426, country: 'Islandia', currency: 'ISK', img: 'https://images.unsplash.com/photo-1504893524553-b855bce32c67?auto=format&fit=crop&w=1600&q=80' },
-    'nowy jork': { lat: 40.7128, lng: -74.0060, country: 'Stany Zjednoczone', currency: 'USD', img: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=1600&q=80' },
-    'bali': { lat: -8.4095, lng: 115.1889, country: 'Indonezja', currency: 'IDR', img: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?auto=format&fit=crop&w=1600&q=80' },
-    'lizbona': { lat: 38.7223, lng: -9.1393, country: 'Portugalia', currency: 'EUR', img: 'https://images.unsplash.com/photo-1508672019048-805c876b67e2?auto=format&fit=crop&w=1600&q=80' },
-    'kraków': { lat: 50.0647, lng: 19.9450, country: 'Polska', currency: 'PLN', img: 'https://images.unsplash.com/photo-1519197924294-4ba991a11128?auto=format&fit=crop&w=1600&q=80' },
-    'zakopane': { lat: 49.2992, lng: 19.9496, country: 'Polska', currency: 'PLN', img: 'https://images.unsplash.com/photo-1589308078059-be1415eab4c3?auto=format&fit=crop&w=1600&q=80' },
-    'londyn': { lat: 51.5074, lng: -0.1278, country: 'Wielka Brytania', currency: 'GBP', img: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1600&q=80' },
-    'praga': { lat: 50.0755, lng: 14.4378, country: 'Czechy', currency: 'CZK', img: 'https://images.unsplash.com/photo-1541849546-216549ae216d?auto=format&fit=crop&w=1600&q=80' },
-    'wiedeń': { lat: 48.2082, lng: 16.3738, country: 'Austria', currency: 'EUR', img: 'https://images.unsplash.com/photo-1516550893923-42d28e5677af?auto=format&fit=crop&w=1600&q=80' },
-    'amsterdam': { lat: 52.3676, lng: 4.9041, country: 'Holandia', currency: 'EUR', img: 'https://images.unsplash.com/photo-1512470876302-972faa2aa9a4?auto=format&fit=crop&w=1600&q=80' }
-  };
+  // 2. Check match in CITY_DATABASE
+  for (const [key, city] of Object.entries(CITY_DATABASE)) {
+    if (cleanKey.includes(key) || key.includes(cleanKey)) {
+      const days: DayPlan[] = [];
+      const spotsPerDay = pace === 'relaxed' ? 2 : pace === 'intense' ? 4 : 3;
 
-  const lookupKey = Object.keys(coordinatesMap).find(k => cleanKey.includes(k) || k.includes(cleanKey));
-  const meta = lookupKey ? coordinatesMap[lookupKey] : {
-    lat: 48.8566 + (Math.random() * 2 - 1),
-    lng: 2.3522 + (Math.random() * 2 - 1),
-    country: 'Podróż Marzeń',
-    currency: 'EUR',
-    img: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1600&q=80'
-  };
+      for (let i = 1; i <= daysCount; i++) {
+        const dayActivities: ActivitySpot[] = [];
+        const startIdx = ((i - 1) * spotsPerDay) % city.spots.length;
+
+        for (let s = 0; s < spotsPerDay; s++) {
+          const spotTemplate = city.spots[(startIdx + s) % city.spots.length];
+          const timeSlot = s === 0 ? 'morning' : s === 1 ? 'afternoon' : 'evening';
+          const timeLabel = s === 0 ? '09:30 - 12:30' : s === 1 ? '13:30 - 16:30' : '17:30 - 21:00';
+
+          dayActivities.push({
+            id: `act-${i}-${s + 1}`,
+            timeSlot,
+            time: timeLabel,
+            title: spotTemplate.title,
+            category: spotTemplate.category,
+            description: spotTemplate.desc,
+            practicalTip: spotTemplate.tip,
+            estimatedCost: budget === 'budget' ? '0 - 10 EUR' : '15 - 25 EUR',
+            durationHours: 3,
+            coordinates: { lat: spotTemplate.lat, lng: spotTemplate.lng },
+            address: spotTemplate.address,
+            transitToNext: 'Spacer lub krótki przejazd transportem miejskim'
+          });
+        }
+
+        days.push({
+          dayNumber: i,
+          title: `Dzień ${i}: Odkrywanie ${dest}`,
+          theme: i === 1 ? 'Kultowe Zabytki & Pierwsze Wrażenia' : i === 2 ? 'Kultura, Zaułki & Lokalne Smaki' : 'Punkty Widokowe & Klimatyczny Chillout',
+          summary: `Zbalansowany program zwiedzania ${dest} dopasowany do tempa ${pace} i stylu ${group}.`,
+          activities: dayActivities
+        });
+      }
+
+      return {
+        id: `dyn-trip-${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        title: `Magia ${dest}: Niezapomniana Podróż`,
+        destination: dest,
+        country: city.country,
+        tagline: `Spersonalizowany plan ${daysCount}-dniowy: najlepsze zabytki, kulinaria i punkty widokowe.`,
+        heroImage: city.img,
+        summary: `Kompletny przewodnik po ${dest} zawierający autentyczne miejsca, precyzyjne współrzędne na mapie oraz polecane lokalne przysmaki.`,
+        centerCoordinates: { lat: city.lat, lng: city.lng },
+        defaultZoom: 13,
+        preferences,
+        days,
+        culinaryGuide: {
+          dishes: city.dishes.map((d, idx) => ({
+            id: `dish-${idx + 1}`,
+            name: d.name,
+            type: d.type,
+            description: d.desc,
+            mustTryWhy: d.why,
+            typicalPrice: d.price,
+            imageUrl: d.img
+          })),
+          restaurants: city.restaurants.map((r, idx) => ({
+            id: `rest-${idx + 1}`,
+            name: r.name,
+            category: r.cat,
+            categoryLabel: r.cat === 'traditional' ? 'Tradycyjna Tawerna' : r.cat === 'fine_dining' ? 'Fine Dining' : 'Street Food',
+            description: r.desc,
+            recommendedDish: r.dish,
+            priceRange: r.price,
+            address: r.addr,
+            coordinates: { lat: r.lat, lng: r.lng }
+          }))
+        },
+        budget: {
+          currency: city.currency,
+          accommodationPerDay: budget === 'luxury' ? '180 - 350 EUR' : budget === 'budget' ? '40 - 75 EUR' : '80 - 150 EUR',
+          foodPerDay: budget === 'luxury' ? '80 - 150 EUR' : budget === 'budget' ? '25 - 40 EUR' : '45 - 75 EUR',
+          activitiesPerDay: '15 - 35 EUR',
+          localTransportPerDay: '5 - 12 EUR',
+          estimatedTotalPerPerson: `${daysCount * (budget === 'luxury' ? 300 : budget === 'budget' ? 85 : 160)} ${city.currency}`,
+          moneySavingTips: [
+            'Kup bilet wieloprzejazdowy lub turystyczną kartę miejską obejmującą darmowy transport.',
+            'Zabierz ze sobą bidon wielorazowy i korzystaj z publicznych ujęć wody pitnej.',
+            'Wybieraj restauracje oddalone o 1-2 przecznice od głównych placów turystycznych.'
+          ]
+        },
+        packingList: [
+          { id: 'dp1', category: 'documents', categoryLabel: 'Dokumenty', item: 'Paszport / Dowód osobisty oraz potwierdzenia rezerwacji', isChecked: false },
+          { id: 'dp2', category: 'clothing', categoryLabel: 'Ubrania', item: 'Wygodne buty z dobrą amortyzacją do spacerów po bruku', isChecked: false },
+          { id: 'dp3', category: 'electronics', categoryLabel: 'Elektronika', item: 'Pojemny powerbank i kabel do ładowania telefonu', isChecked: false },
+          { id: 'dp4', category: 'special', categoryLabel: 'Akcesoria', item: 'Lekki plecak miejski na zakupy i wodę', isChecked: false }
+        ],
+        practicalAdvice: {
+          bestSeason: 'Wiosna (Kwiecień - Czerwiec) oraz Wczesna Jesień (Wrzesień - Październik)',
+          localCurrency: `${city.currency} (karty płatnicze są powszechnie akceptowane)`,
+          languageAndPhrases: [
+            { phrase: 'Dzień dobry / Cześć', translation: 'Powitanie' },
+            { phrase: 'Dziękuję bardzo', translation: 'Podziękowanie' },
+            { phrase: 'Poproszę rachunek', translation: 'W restauracji' }
+          ],
+          transportTips: 'Centrum miasta najprzyjemniej zwiedzać pieszo w połączeniu z metrem i autobusami miejskimi.',
+          safetyTips: 'Standardowe zasady ostrożności w miejscach zatłoczonych. Trzymaj portfel i telefon w bezpiecznych kieszeniach.',
+          culturalEtiquette: 'Przestrzegaj lokalnych zwyczajów, witaj się z obsługą przy wejściu do lokali.',
+          emergencyNumber: '112'
+        }
+      };
+    }
+  }
+
+  // 3. Fallback for any other custom destination (Anchored to geographic center)
+  const baseLat = 52.2297; // Warsaw fallback anchor
+  const baseLng = 21.0122;
 
   const days: DayPlan[] = [];
-  const themes = [
-    { title: 'Ikony, Historia & Pierwsze Wrażenia', theme: 'Serce miasta i najważniejsze symbole' },
-    { title: 'Klimatyczne Zaułki & Kultura Lokalna', theme: 'Tradycja, targowiska i życie mieszkańców' },
-    { title: 'Sztuka, Muzea & Kulinarne Rarytasy', theme: 'Galerie sztuki i najlepsze restauracje' },
-    { title: 'Punkty Widokowe & Oaza Natury', theme: 'Panoramiczne widoki i relaks w parkach' },
-    { title: 'Ukryte Perełki & Zakupy Rzemieślnicze', theme: 'Miejsca z dala od tłumów turystów' },
-    { title: 'Okolice, Wycieczka Jednodniowa & Morze/Góry', theme: 'Wyprawa poza centrum' },
-    { title: 'Wielki Finał & Pożegnalny Wieczór', theme: 'Ostatnie smaki i zachód słońca' }
-  ];
-
   for (let i = 1; i <= daysCount; i++) {
-    const themeObj = themes[(i - 1) % themes.length];
-    const offsetLat = (Math.random() - 0.5) * 0.03;
-    const offsetLng = (Math.random() - 0.5) * 0.03;
-
     days.push({
       dayNumber: i,
-      title: `Dzień ${i}: ${themeObj.title}`,
-      theme: themeObj.theme,
-      summary: `Odkryj fascynujące oblicze ${dest}: zbalansowany program zwiedzania, lokalnych smaków i niezapomnianych widoków dostosowany do Twojego tempa (${pace === 'intense' ? 'intensywne' : pace === 'relaxed' ? 'spokojne' : 'zrównoważone'}).`,
+      title: `Dzień ${i}: Zabytki & Serce ${dest}`,
+      theme: i === 1 ? 'Starówka & Symbole Miasta' : i === 2 ? 'Muzea, Parki & Kulinaria' : 'Punkty Widokowe & Pożegnanie',
+      summary: `Poznaj najpiękniejsze zakątki ${dest} w tempie dopasowanym do Ciebie.`,
       activities: [
         {
           id: `act-${i}-1`,
           timeSlot: 'morning',
-          time: '09:00 - 12:00',
-          title: `${dest} – Główny symbol i zabytkowe centrum`,
-          category: 'Zabytki & Architektura',
-          description: `Poranna wizyta w najważniejszym punkcie orientacyjnym ${dest}. Spacer po historycznym placu i poznanie fascynującej genezy tego miejsca.`,
-          practicalTip: 'Przybądź wcześnie rano, aby uniknąć kolejek i cieszyć się miękkim światłem do zdjęć.',
-          estimatedCost: budget === 'budget' ? '0 - 10 EUR' : '15 - 25 EUR',
+          time: '09:30 - 12:30',
+          title: `Zabytkowe Centrum & Główny Rynek ${dest}`,
+          category: 'Zabytki & Historia',
+          description: `Spacer po najważniejszym historycznym placu ${dest} i podziwianie architektury.`,
+          practicalTip: 'Przybądź wcześnie rano, aby uniknąć tłumów i zrobić piękne zdjęcia.',
+          estimatedCost: 'Wstęp bezpłatny',
           durationHours: 3,
-          coordinates: { lat: meta.lat + offsetLat, lng: meta.lng + offsetLng },
+          coordinates: { lat: baseLat + 0.005 * i, lng: baseLng + 0.003 * i },
           address: `Centrum, ${dest}`,
-          transitToNext: '15 min spacerem przez zabytkową starówkę'
+          transitToNext: 'Spacer przez starówkę'
         },
         {
           id: `act-${i}-2`,
           timeSlot: 'afternoon',
-          time: '13:00 - 16:30',
-          title: `Lokalny targ & Przegląd kulinarnych perełek`,
-          category: 'Kulinaria & Doświadczenie',
-          description: `Zanurz się w aromatach regionalnych specjałów ${dest}. Spróbuj tradycyjnego dania obiadowego w polecanym przez mieszkańców bistro.`,
-          practicalTip: 'Zapytaj o danie dnia (plat du jour / piatto del giorno) ze świeżych sezonowych produktów.',
-          estimatedCost: budget === 'budget' ? '10 - 18 EUR' : '20 - 35 EUR',
-          durationHours: 3.5,
-          coordinates: { lat: meta.lat + offsetLat + 0.008, lng: meta.lng + offsetLng - 0.005 },
+          time: '13:30 - 16:30',
+          title: `Lokalny Targ & Muzeum Sztuki ${dest}`,
+          category: 'Kultura & Kulinaria',
+          description: `Zanurz się w kulturze ${dest}, spróbuj lokalnego lunchu i odwiedź główne muzeum miejskie.`,
+          practicalTip: 'Zapytaj o regionalne danie dnia polecane przez mieszkańców.',
+          estimatedCost: '10 - 20 EUR',
+          durationHours: 3,
+          coordinates: { lat: baseLat - 0.004 * i, lng: baseLng + 0.006 * i },
           address: `Dzielnica Kulturalna, ${dest}`,
           transitToNext: '10 min transportem miejskim'
         },
         {
           id: `act-${i}-3`,
           timeSlot: 'evening',
-          time: '18:00 - 22:00',
-          title: `Zachód słońca & Wieczorny klimat ${dest}`,
-          category: 'Relaks & Panorama',
-          description: `Podziwiaj panoramę miasta w ciepłych barwach zachodzącego słońca, a następnie udaj się na klimatyczną kolację i wieczorny spacer.`,
-          practicalTip: 'Zarezerwuj stolik z wyprzedzeniem, szczególnie w weekendy.',
-          estimatedCost: budget === 'budget' ? '15 - 25 EUR' : '30 - 55 EUR',
-          durationHours: 4,
-          coordinates: { lat: meta.lat + offsetLat - 0.006, lng: meta.lng + offsetLng + 0.009 },
-          address: `Promenada / Punkt Widokowy, ${dest}`,
-          transitToNext: 'Powrót do miejsca noclegu'
+          time: '18:00 - 21:30',
+          title: `Punkt Widokowy & Klimatyczna Kolacja`,
+          category: 'Panorama & Relaks',
+          description: `Podziwiaj panoramę ${dest} o zachodzie słońca, a następnie spędź wieczór w klimatycznej restauracji.`,
+          practicalTip: 'Zarezerwuj stolik na kolację z wyprzedzeniem.',
+          estimatedCost: '20 - 35 EUR',
+          durationHours: 3.5,
+          coordinates: { lat: baseLat + 0.008 * i, lng: baseLng - 0.005 * i },
+          address: `Promenada / Wzgórze, ${dest}`,
+          transitToNext: 'Powrót do hotelu'
         }
       ]
     });
@@ -1159,114 +1344,69 @@ export function generateDynamicTrip(preferences: TravelPreferences): TripPlan {
   return {
     id: `dyn-trip-${Date.now()}`,
     createdAt: new Date().toISOString(),
-    title: `Niezapomniana Wyprawa: ${dest}`,
+    title: `Odkryj Uroki: ${dest}`,
     destination: dest,
-    country: meta.country,
-    tagline: `Spersonalizowany plan ${daysCount}-dniowy dostosowany do stylu ${group} i tempa ${pace}.`,
-    heroImage: meta.img,
-    summary: `Kompleksowy plan podróży do ${dest} łączący ikoniczne punkty programu, autentyczne doznania kulinarne, optymalne trasy logistyczne i praktyczne porady.`,
-    centerCoordinates: { lat: meta.lat, lng: meta.lng },
+    country: 'Podróż Marzeń',
+    tagline: `Spersonalizowany plan ${daysCount}-dniowy dla ${group}.`,
+    heroImage: 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1600&q=80',
+    summary: `Szczegółowy plan zwiedzania ${dest} z wyznaczonymi punktami na mapie, kosztorysem i propozycjami kulinarnymi.`,
+    centerCoordinates: { lat: baseLat, lng: baseLng },
     defaultZoom: 13,
     preferences,
     days,
     culinaryGuide: {
       dishes: [
         {
-          id: 'dyn-dish-1',
-          name: `Lokalny Specjał ${dest}`,
+          id: 'dish-1',
+          name: `Tradycyjny Specjał ${dest}`,
           type: 'dish',
-          description: `Flagowe danie regionu ${dest} przygotowywane według tradycyjnej receptury na bazie świeżych lokalnych składników.`,
-          mustTryWhy: 'Prawdziwy symbol tożsamości kulinarnej tego zakątka świata.',
-          typicalPrice: '12 - 22 EUR',
+          description: `Flagowa potrawa regionu ${dest} przygotowywana według lokalnego przepisu.`,
+          mustTryWhy: 'Autentyczny smak tego zakątka świata.',
+          typicalPrice: '12 - 20 EUR',
           imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80'
-        },
-        {
-          id: 'dyn-dish-2',
-          name: `Tradycyjny Deser & Kawa`,
-          type: 'dessert',
-          description: `Słodki przysmak uwielbiany przez mieszkańców, idealny do popołudniowej przerwy kawowej w historycznej kawiarni.`,
-          mustTryWhy: 'Doskonałe zwieńczenie każdego dnia zwiedzania.',
-          typicalPrice: '4 - 7 EUR',
-          imageUrl: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=800&q=80'
-        },
-        {
-          id: 'dyn-dish-3',
-          name: `Street Food z Targu`,
-          type: 'street_food',
-          description: `Chrupiąca, świeżo przygotowywana przekąska uliczna, którą można zjeść prosto z papierowej torby podczas spaceru.`,
-          mustTryWhy: 'Szybko, tanio i niezwykle smacznie.',
-          typicalPrice: '3 - 6 EUR',
-          imageUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=800&q=80'
         }
       ],
       restaurants: [
         {
-          id: 'dyn-rest-1',
-          name: `Osteria / Bistro du Terroir ${dest}`,
+          id: 'rest-1',
+          name: `Restauracja Regionalna ${dest}`,
           category: 'traditional',
-          categoryLabel: 'Tradycyjna Kuchnia Regionalna',
-          description: 'Rodzinny lokal z długą tradycją serwujący autentyczne domowe potrawy według sprawdzonych receptur.',
-          recommendedDish: `Specjalność Szefa Kuchni ${dest}`,
+          categoryLabel: 'Kuchnia Tradycyjna',
+          description: 'Ceniony lokal z autentyczną kuchnią i miłą obsługą.',
+          recommendedDish: 'Danie szefa kuchni',
           priceRange: '$$',
-          address: `Centrum Historyczne, ${dest}`,
-          coordinates: { lat: meta.lat + 0.003, lng: meta.lng + 0.002 }
-        },
-        {
-          id: 'dyn-rest-2',
-          name: `Gourmet Lounge & Panorama`,
-          category: 'fine_dining',
-          categoryLabel: 'Wykwintna Restauracja z Widokiem',
-          description: 'Eleganckie miejsce z tarasem widokowym, doskonałą kartą win i autorskim menu degustacyjnym.',
-          recommendedDish: 'Autorskie Menu Degustacyjne 5 dań',
-          priceRange: '$$$',
-          address: `Wzgórze Widokowe, ${dest}`,
-          coordinates: { lat: meta.lat - 0.004, lng: meta.lng - 0.003 }
-        },
-        {
-          id: 'dyn-rest-3',
-          name: `Mercato Centrale Food Hall`,
-          category: 'street_food',
-          categoryLabel: 'Hala Targowa ze Street Foodem',
-          description: 'Tętniące życiem miejsce gromadzące pod jednym dachem kilkunastu lokalnych rzemieślników kulinarnych.',
-          recommendedDish: 'Talerz degustacyjny lokalnych przysmaków',
-          priceRange: '$',
-          address: `Hala Targowa, ${dest}`,
-          coordinates: { lat: meta.lat + 0.006, lng: meta.lng - 0.007 }
+          address: `Centrum, ${dest}`,
+          coordinates: { lat: baseLat + 0.002, lng: baseLng + 0.002 }
         }
       ]
     },
     budget: {
-      currency: meta.currency,
-      accommodationPerDay: budget === 'luxury' ? '180 - 350 EUR' : budget === 'budget' ? '40 - 75 EUR' : '80 - 150 EUR',
-      foodPerDay: budget === 'luxury' ? '80 - 150 EUR' : budget === 'budget' ? '25 - 40 EUR' : '45 - 75 EUR',
-      activitiesPerDay: '15 - 35 EUR',
-      localTransportPerDay: '5 - 12 EUR',
-      estimatedTotalPerPerson: `${daysCount * (budget === 'luxury' ? 300 : budget === 'budget' ? 85 : 160)} ${meta.currency}`,
+      currency: 'EUR',
+      accommodationPerDay: '80 - 150 EUR',
+      foodPerDay: '35 - 60 EUR',
+      activitiesPerDay: '15 - 30 EUR',
+      localTransportPerDay: '5 - 10 EUR',
+      estimatedTotalPerPerson: `${daysCount * 140} EUR`,
       moneySavingTips: [
-        'Kup kartę miejską typu City Pass obejmującą nielimitowany transport publiczny i darmowe wejścia do muzeów.',
-        'Zawsze miej przy sobie butelkę wielorazową i korzystaj z lokalnych punktów z wodą zdatną do picia.',
-        'Wybieraj restauracje oddalone o 2-3 ulice od głównych placów turystycznych – ceny są niższe, a jakość znacznie wyższa.'
+        'Korzystaj z komunikacji miejskiej i biletów dobowych.',
+        'Wybieraj restauracje z menu dnia (lunch special).'
       ]
     },
     packingList: [
-      { id: 'dp1', category: 'documents', categoryLabel: 'Dokumenty', item: 'Dowód osobisty / Paszport oraz potwierdzenia rezerwacji noclegów', isChecked: false },
-      { id: 'dp2', category: 'clothing', categoryLabel: 'Ubrania', item: 'Wygodne, rozchodzone obuwie do wielokilometrowych spacerów', isChecked: false },
-      { id: 'dp3', category: 'clothing', categoryLabel: 'Ubrania', item: 'Ubrania warstwowe (cebulka) dopasowane do prognozy pogody', isChecked: false },
-      { id: 'dp4', category: 'electronics', categoryLabel: 'Elektronika', item: 'Powerbank o pojemności min. 10 000 mAh i kabel do ładowania', isChecked: false },
-      { id: 'dp5', category: 'special', categoryLabel: 'Akcesoria', item: 'Lekki plecak dzienny na wodę, aparat i pamiątki', isChecked: false }
+      { id: 'p1', category: 'documents', categoryLabel: 'Dokumenty', item: 'Dowód osobisty / Paszport', isChecked: false },
+      { id: 'p2', category: 'clothing', categoryLabel: 'Ubrania', item: 'Wygodne obuwie spacerowe', isChecked: false },
+      { id: 'p3', category: 'electronics', categoryLabel: 'Elektronika', item: 'Powerbank i ładowarka', isChecked: false }
     ],
     practicalAdvice: {
-      bestSeason: 'Wiosna (Kwiecień - Czerwiec) oraz Wczesna Jesień (Wrzesień - Październik)',
-      localCurrency: `${meta.currency} (karty płatnicze są powszechnie honorowane, ale warto mieć niewielką kwotę w gotówce)`,
+      bestSeason: 'Wiosna - Jesień',
+      localCurrency: 'EUR / Waluta lokalna',
       languageAndPhrases: [
-        { phrase: 'Dzień dobry / Cześć', translation: 'Lokalne powitanie' },
-        { phrase: 'Proszę / Dziękuję', translation: 'Zwroty grzecznościowe' },
-        { phrase: 'Ile to kosztuje?', translation: 'Pytanie o cenę' },
-        { phrase: 'Poproszę rachunek', translation: 'W restauracji' }
+        { phrase: 'Dzień dobry', translation: 'Powitanie' },
+        { phrase: 'Dziękuję', translation: 'Podziękowanie' }
       ],
-      transportTips: 'Najlepszym sposobem na odkrywanie uroków miasta jest spacer w połączeniu z metrem i tramwajami. Kup bilet dobowy lub wieloprzejazdowy.',
-      safetyTips: 'Standardowe środki ostrożności w miejscach zatłoczonych. Trzymaj dokumenty i telefon w bezpiecznych, zamykanych kieszeniach.',
-      culturalEtiquette: 'Przestrzegaj lokalnych zwyczajów, witaj się przy wejściu do małych sklepików i szanuj ciszę w miejscach kultu.',
+      transportTips: 'Poruszaj się pieszo lub transportem miejskim.',
+      safetyTips: 'Pilnuj rzeczy osobistych w miejscach turystycznych.',
+      culturalEtiquette: 'Szanuj lokalne zwyczaje.',
       emergencyNumber: '112'
     }
   };

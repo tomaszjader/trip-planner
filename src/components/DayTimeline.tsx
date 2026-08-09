@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Clock, MapPin, Lightbulb, DollarSign, Navigation, Plus, Trash2, 
   CheckCircle2, Sun, Sunset, Moon, Sparkles
@@ -26,6 +26,22 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({
   const [newTip, setNewTip] = useState('');
   const [newCost] = useState('Darmowe');
   const [newSlot, setNewSlot] = useState<'morning' | 'afternoon' | 'evening'>('afternoon');
+
+  useEffect(() => {
+    if (showAddModalForDay === null) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowAddModalForDay(null);
+    };
+
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showAddModalForDay]);
 
   const toggleCompleted = (id: string) => {
     setCompletedActivities(prev => ({
@@ -113,7 +129,7 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({
 
       {/* Days List */}
       <div className="days-list">
-        {displayedDays.map((day, dIdx) => (
+        {displayedDays.map((day) => (
           <div key={day.dayNumber} className="day-block glass-panel">
             {/* Day Header */}
             <div className="day-header">
@@ -181,7 +197,7 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({
                           </button>
                           <button
                             className="btn-delete-action"
-                            onClick={() => handleRemoveActivity(dIdx, activity.id)}
+                            onClick={() => handleRemoveActivity(trip.days.findIndex(item => item.dayNumber === day.dayNumber), activity.id)}
                             title="Usuń z planu"
                           >
                             <Trash2 size={16} />
@@ -233,9 +249,15 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({
 
       {/* Add Custom Spot Modal */}
       {showAddModalForDay !== null && (
-        <div className="modal-backdrop">
-          <div className="modal-content glass-panel animate-fade-in">
-            <h3 className="modal-title">Dodaj własny punkt do Dnia {showAddModalForDay}</h3>
+        <div className="modal-backdrop" onMouseDown={() => setShowAddModalForDay(null)}>
+          <div
+            className="modal-content glass-panel animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-activity-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <h3 className="modal-title" id="add-activity-title">Dodaj własny punkt do Dnia {showAddModalForDay}</h3>
             
             <div className="form-group">
               <label className="form-label">Nazwa miejsca / atrakcji:</label>
