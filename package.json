@@ -2,6 +2,7 @@
   "name": "voyage-ai-trip-planner",
   "private": true,
   "version": "1.0.0",
+  "license": "MIT",
   "type": "module",
   "homepage": "https://tomaszjader.github.io/trip-planner",
   "scripts": {

@@ -121,4 +121,4 @@ Gotowe pliki zostaną zapisane w katalogu `dist/`.
 
 ## Licencja
 
-Projekt nie ma jeszcze określonej licencji. Przed publicznym udostępnieniem dodaj odpowiedni plik `LICENSE`.
+Projekt jest udostępniany na warunkach licencji [MIT](file:///LICENSE). Szczegóły znajdują się w pliku [LICENSE](file:///LICENSE).
