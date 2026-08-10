@@ -59,7 +59,27 @@ Klucze i ustawienia są przechowywane wyłącznie w `localStorage` bieżącej pr
 npm run dev      # serwer deweloperski
 npm run build    # sprawdzenie TypeScript i build produkcyjny
 npm run preview  # lokalny podgląd buildu produkcyjnego
+npm run deploy   # manualne wdrożenie na GitHub Pages (gałąź gh-pages)
 ```
+
+## Wdrożenie na GitHub Pages
+
+Aplikacja jest w pełni skonfigurowana do działania na GitHub Pages:
+
+### 1. Automatyczne wdrożenie (GitHub Actions – zalecane)
+W repozytorium znajduje się przepływ [deploy.yml](file:///.github/workflows/deploy.yml), który automatycznie buduje i publikuje aplikację po każdym `push` do gałęzi `main`.
+1. Wejdź na GitHubie w **Settings** swojego repozytorium `trip-planner`.
+2. W menu bocznym wybierz **Pages** (w sekcji *Code and automation*).
+3. W sekcji **Build and deployment** -> **Source** wybierz **GitHub Actions**.
+4. Przy każdym wypchnięciu zmian do `main` strona zostanie automatycznie zaktualizowana pod adresem:
+   `https://<twój-login>.github.io/trip-planner/`
+
+### 2. Manualne wdrożenie (opcjonalnie)
+Możesz także wdrożyć stronę ręcznie za pomocą komendy:
+```bash
+npm run deploy
+```
+Wtedy w **Settings** -> **Pages** wybierz źródło *Deploy from a branch* i wskaż gałąź `gh-pages`.
 
 ## Struktura projektu
 
