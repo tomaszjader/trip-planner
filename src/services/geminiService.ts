@@ -6,7 +6,8 @@ import {
   getStoredOpenAiApiKey,
   getStoredGeminiModel,
   getStoredOpenAiModel,
-  hasAnyApiKey
+  hasAnyApiKey,
+  getAppSettings
 } from './storageService';
 
 /**
@@ -25,9 +26,10 @@ function sanitizeCoordinates(coords: any, fallbackCenter: { lat: number; lng: nu
  * Builds the comprehensive prompt for generating a detailed trip plan.
  */
 function buildTripPrompt(preferences: TravelPreferences): string {
+  const outputLanguage = getAppSettings().language === 'en' ? 'English' : 'Polish';
   return `
 Jesteś elitarnym przewodnikiem i planistą podróży w aplikacji VoyageAI.
-Stwórz perfekcyjny, niesamowicie szczegółowy i realistyczny plan podróży w języku polskim.
+Stwórz perfekcyjny, niesamowicie szczegółowy i realistyczny plan podróży. Wszystkie treści przeznaczone dla użytkownika (tytuły, opisy, porady, etykiety i tłumaczenia) napisz w języku: ${outputLanguage}.
 Format odpowiedzi: CZYSTY JSON bez żadnych znaczników Markdown wokół (bez \`\`\`json).
 
 Wymogi dla planu podróży:
@@ -297,15 +299,16 @@ export async function sendChatMessage(
   const geminiKey = getStoredGeminiApiKey();
   const openAiKey = getStoredOpenAiApiKey();
 
+  const outputLanguage = getAppSettings().language === 'en' ? 'English' : 'Polish';
   const systemInstruction = `
 Jesteś przyjaznym, profesjonalnym doradcą i asystentem podróżniczym w aplikacji VoyageAI.
-Rozmawiasz po polsku. Twoim zadaniem jest pomóc użytkownikowi zaplanować idealną podróż poprzez naturalny dialog.
+Rozmawiasz z użytkownikiem wyłącznie w języku ${outputLanguage}. Twoim zadaniem jest pomóc użytkownikowi zaplanować idealną podróż poprzez naturalny dialog.
 Zadawaj celne pytania, jeśli brakuje kluczowych informacji (dokąd, na ile dni, jaki styl: relaks vs zwiedzanie vs kulinaria vs trekking, jaki budżet, z kim podróżuje).
 Gdy masz już wystarczająco dużo szczegółów (lub gdy użytkownik wprost poprosi o plan), podsumuj jego wybory i zaproponuj wygenerowanie planu.
 
 Zwróć odpowiedź w czystym formacie JSON:
 {
-  "reply": "Twoja miła, konwersacyjna odpowiedź po polsku",
+  "reply": "Twoja miła, konwersacyjna odpowiedź w języku ${outputLanguage}",
   "extractedPreferences": {
     "destination": "wykryte miasto/kraj lub null",
     "durationDays": "liczba dni lub null",

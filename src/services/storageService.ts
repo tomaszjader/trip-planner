@@ -8,7 +8,8 @@ const STORAGE_KEYS = {
   OPENAI_API_KEY: 'voyage_ai_openai_api_key',
   GEMINI_MODEL: 'voyage_ai_gemini_model',
   OPENAI_MODEL: 'voyage_ai_openai_model',
-  THEME: 'voyage_ai_theme'
+  THEME: 'voyage_ai_theme',
+  LANGUAGE: 'voyage_ai_language'
 };
 
 export function getSavedTrips(): TripPlan[] {
@@ -149,7 +150,7 @@ export function getAppSettings(): AppSettings {
     selectedOpenAIModel: getStoredOpenAiModel(),
     selectedModel: getStoredModel(),
     theme: (localStorage.getItem(STORAGE_KEYS.THEME) as any) || 'dark',
-    language: 'pl'
+    language: (localStorage.getItem(STORAGE_KEYS.LANGUAGE) as AppSettings['language']) || 'pl'
   };
 }
 
@@ -160,4 +161,5 @@ export function saveAppSettings(settings: Partial<AppSettings>): void {
   if (settings.selectedGeminiModel !== undefined) setStoredGeminiModel(settings.selectedGeminiModel);
   if (settings.selectedOpenAIModel !== undefined) setStoredOpenAiModel(settings.selectedOpenAIModel);
   if (settings.theme !== undefined) localStorage.setItem(STORAGE_KEYS.THEME, settings.theme);
+  if (settings.language !== undefined) localStorage.setItem(STORAGE_KEYS.LANGUAGE, settings.language);
 }

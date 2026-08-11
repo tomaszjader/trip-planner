@@ -34,6 +34,7 @@ export const App: React.FC = () => {
     const settings = getAppSettings();
     setCurrentTheme(settings.theme || 'dark');
     document.documentElement.setAttribute('data-theme', settings.theme || 'dark');
+    document.documentElement.lang = settings.language || 'pl';
   }, []);
 
   const handleToggleTheme = () => {

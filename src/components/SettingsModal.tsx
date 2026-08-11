@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { X, Settings, Key, Cpu, Check, ExternalLink, ShieldCheck, AlertCircle, Sparkles } from 'lucide-react';
-import { AIProvider } from '../types/travel';
+import { AIProvider, AppSettings } from '../types/travel';
 import {
   getAiProvider, setAiProvider,
   getStoredGeminiApiKey, setStoredGeminiApiKey,
   getStoredOpenAiApiKey, setStoredOpenAiApiKey,
   getStoredGeminiModel, setStoredGeminiModel,
-  getStoredOpenAiModel, setStoredOpenAiModel
+  getStoredOpenAiModel, setStoredOpenAiModel,
+  getAppSettings, saveAppSettings
 } from '../services/storageService';
 
 interface SettingsModalProps {
@@ -20,6 +21,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   const [openAiApiKey, setOpenAiKey] = useState(getStoredOpenAiApiKey());
   const [geminiModel, setGeminiModel] = useState(getStoredGeminiModel());
   const [openAiModel, setOpenAiModel] = useState(getStoredOpenAiModel());
+  const [language, setLanguage] = useState<AppSettings['language']>(getAppSettings().language);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [geminiTestStatus, setGeminiTestStatus] = useState<'idle' | 'testing' | 'valid' | 'invalid'>('idle');
@@ -49,6 +51,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
     setStoredOpenAiApiKey(openAiApiKey);
     setStoredGeminiModel(geminiModel);
     setStoredOpenAiModel(openAiModel);
+    saveAppSettings({ language });
+    document.documentElement.lang = language;
 
     setSavedSuccess(true);
     setTimeout(() => {
@@ -134,6 +138,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         </div>
 
         <div className="modal-body">
+          <div className="form-group language-settings">
+            <label className="form-label" htmlFor="app-language">Język aplikacji / App language:</label>
+            <select id="app-language" value={language} onChange={(event) => setLanguage(event.target.value as AppSettings['language'])}>
+              <option value="pl">Polski</option>
+              <option value="en">English</option>
+            </select>
+            <span className="language-hint">
+              {language === 'en'
+                ? 'The assistant and newly generated trip plans will use English.'
+                : 'Asystent i nowe plany podróży będą używać języka polskiego.'}
+            </span>
+          </div>
           <div className="api-info-banner">
             <ShieldCheck size={22} className="text-emerald" />
             <div>
@@ -329,6 +345,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           display: flex;
           flex-direction: column;
           padding: 28px;
+        }
+
+        .language-settings {
+          padding: 16px;
+          margin-bottom: 20px;
+          border: 1px solid var(--border-color);
+          border-radius: var(--radius-md);
+          background: rgba(56, 189, 248, 0.06);
+        }
+
+        .language-hint {
+          display: block;
+          margin-top: 7px;
+          color: var(--text-muted);
+          font-size: 0.78rem;
         }
 
         .api-info-banner {
