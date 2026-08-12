@@ -1,124 +1,131 @@
-# VoyageAI — inteligentny planer podróży
+# VoyageAI — intelligent trip planner
 
-VoyageAI to aplikacja webowa do tworzenia spersonalizowanych planów podróży. Pozwala zaplanować wyjazd przez rozmowę z asystentem lub formularz, a następnie przeglądać harmonogram, mapę atrakcji, przewodnik kulinarny, budżet i listę rzeczy do spakowania.
+**English** | [Polski](README.pl.md)
 
-## Funkcje
+VoyageAI is a web application for creating personalized travel plans. You can plan a trip through a conversation with an assistant or a step-by-step form, then explore the itinerary, attraction map, food guide, budget, and packing list.
 
-- planowanie podróży przez czat lub kreator krok po kroku,
-- generowanie planów przez Google Gemini albo OpenAI,
-- lokalny generator zapasowy i gotowe przykładowe kierunki,
-- harmonogram dzień po dniu z możliwością dodawania i usuwania punktów,
-- interaktywna mapa oparta na Leaflet,
-- przewodnik kulinarny, kosztorys i praktyczne wskazówki,
-- edytowalna lista rzeczy do spakowania,
-- zapisywanie planów w pamięci przeglądarki,
-- eksport planu przez systemowe drukowanie do PDF,
-- jasny i ciemny motyw,
-- responsywny interfejs dla komputerów i urządzeń mobilnych.
+## Features
 
-## Technologie
+- plan trips through chat or a step-by-step wizard,
+- generate itineraries with Google Gemini or OpenAI,
+- use the local fallback generator and ready-made sample destinations,
+- browse a day-by-day itinerary and add or remove activities,
+- explore an interactive Leaflet map,
+- view a food guide, cost estimate, and practical travel tips,
+- manage an editable packing list,
+- save plans in browser storage,
+- export a plan to PDF through the system print dialog,
+- switch between light and dark themes,
+- use a responsive interface on desktop and mobile devices.
+
+## Tech stack
 
 - React 18
 - TypeScript
 - Vite
-- Leaflet i React Leaflet
+- Leaflet and React Leaflet
 - Lucide React
 - Canvas Confetti
 
-## Wymagania
+## Requirements
 
-- Node.js 18 lub nowszy
+- Node.js 18 or newer
 - npm
 
-Klucz API nie jest wymagany do uruchomienia aplikacji. Bez niego VoyageAI korzysta z lokalnych danych i generatora zapasowego. Własny klucz Gemini lub OpenAI umożliwia generowanie bardziej dopasowanych planów.
+An API key is not required to run the application. Without one, VoyageAI uses local data and its fallback generator. Adding your own Gemini or OpenAI key enables more personalized itinerary generation.
 
-## Uruchomienie lokalne
+## Run locally
 
 ```bash
-git clone <adres-repozytorium>
+git clone <repository-url>
 cd trip-planner
 npm install
 npm run dev
 ```
 
-Vite wyświetli w terminalu lokalny adres aplikacji, zwykle `http://localhost:5173`.
+Vite will print the local application URL in the terminal, usually `http://localhost:5173`.
 
-## Konfiguracja AI
+## AI configuration
 
-1. Uruchom aplikację.
-2. Otwórz **Ustawienia AI** w górnym pasku.
-3. Wybierz Google Gemini lub OpenAI.
-4. Wklej własny klucz API i wybierz model.
-5. Opcjonalnie użyj przycisku testowania klucza, a następnie zapisz ustawienia.
+1. Start the application.
+2. Open **AI Settings** in the top navigation bar.
+3. Select Google Gemini or OpenAI.
+4. Enter your API key and select a model.
+5. Optionally test the key, then save the settings.
 
-Klucze i ustawienia są przechowywane wyłącznie w `localStorage` bieżącej przeglądarki. To wygodne rozwiązanie dla lokalnego projektu demonstracyjnego, ale aplikacja produkcyjna powinna wysyłać zapytania do dostawcy AI przez własny backend, aby nie udostępniać klucza kodowi działającemu w przeglądarce.
+Keys and AI settings are stored only in the current browser's `localStorage`. This is convenient for a local demo project, but a production application should send AI provider requests through its own backend so that API keys are not exposed to browser-side code.
 
-## Dostępne komendy
+## Available commands
 
 ```bash
-npm run dev      # serwer deweloperski
-npm run build    # sprawdzenie TypeScript i build produkcyjny
-npm run preview  # lokalny podgląd buildu produkcyjnego
-npm run deploy   # manualne wdrożenie na GitHub Pages (gałąź gh-pages)
+npm run dev      # start the development server
+npm run build    # type-check and create a production build
+npm run preview  # preview the production build locally
+npm run deploy   # deploy manually to the gh-pages branch
 ```
 
-## Wdrożenie na GitHub Pages
+## Deploy to GitHub Pages
 
-Aplikacja jest w pełni skonfigurowana do działania na GitHub Pages:
+The application is configured for GitHub Pages.
 
-### 1. Automatyczne wdrożenie (GitHub Actions – zalecane)
-W repozytorium znajduje się przepływ [deploy.yml](file:///.github/workflows/deploy.yml), który automatycznie buduje i publikuje aplikację po każdym `push` do gałęzi `main`.
-1. Wejdź na GitHubie w **Settings** swojego repozytorium `trip-planner`.
-2. W menu bocznym wybierz **Pages** (w sekcji *Code and automation*).
-3. W sekcji **Build and deployment** -> **Source** wybierz **GitHub Actions**.
-4. Przy każdym wypchnięciu zmian do `main` strona zostanie automatycznie zaktualizowana pod adresem:
-   `https://<twój-login>.github.io/trip-planner/`
+### Automatic deployment with GitHub Actions (recommended)
 
-### 2. Manualne wdrożenie (opcjonalnie)
-Możesz także wdrożyć stronę ręcznie za pomocą komendy:
+The repository includes a [deployment workflow](.github/workflows/deploy.yml) that builds and publishes the application after every push to the `main` branch.
+
+1. Open the repository **Settings** on GitHub.
+2. Select **Pages** under *Code and automation*.
+3. Under **Build and deployment → Source**, select **GitHub Actions**.
+4. Push changes to `main`. The site will be updated at:
+   `https://<your-username>.github.io/trip-planner/`
+
+### Manual deployment (optional)
+
+Run:
+
 ```bash
 npm run deploy
 ```
-Wtedy w **Settings** -> **Pages** wybierz źródło *Deploy from a branch* i wskaż gałąź `gh-pages`.
 
-## Struktura projektu
+Then open **Settings → Pages**, choose *Deploy from a branch*, and select the `gh-pages` branch.
+
+## Project structure
 
 ```text
 trip-planner/
 ├── src/
-│   ├── components/       # widoki i komponenty interfejsu
-│   ├── services/         # integracje AI, dane przykładowe i localStorage
-│   ├── types/            # typy danych planu podróży
-│   ├── App.tsx           # główny przepływ aplikacji
-│   ├── index.css         # globalny system wizualny
-│   └── main.tsx          # punkt wejścia React
+│   ├── components/       # UI views and components
+│   ├── services/         # AI integrations, sample data, and localStorage
+│   ├── types/            # travel plan data types
+│   ├── App.tsx           # main application flow
+│   ├── index.css         # global visual system
+│   └── main.tsx          # React entry point
 ├── index.html
 ├── package.json
 ├── tsconfig.json
 └── vite.config.ts
 ```
 
-## Dane użytkownika
+## User data
 
-Zapisane wyjazdy, aktywny plan, motyw, wybrany dostawca AI i klucze API znajdują się w `localStorage`. Wyczyszczenie danych witryny w przeglądarce usuwa te informacje. Projekt nie posiada obecnie synchronizacji kont ani zewnętrznej bazy danych.
+Saved trips, the active plan, theme, selected AI provider, and API keys are stored in `localStorage`. Clearing the site's browser data removes this information. The project currently has no account synchronization or external database.
 
-## Build produkcyjny
+## Production build
 
 ```bash
 npm run build
 npm run preview
 ```
 
-Gotowe pliki zostaną zapisane w katalogu `dist/`.
+The generated files are written to `dist/`.
 
-## Dalszy rozwój
+## Roadmap
 
-- przeniesienie komunikacji z API na backend,
-- synchronizacja planów między urządzeniami,
-- testy jednostkowe i end-to-end,
-- lazy loading mapy w celu zmniejszenia początkowego pakietu JavaScript,
-- import i eksport planów w przenośnym formacie.
+- move API communication to a backend,
+- synchronize plans across devices,
+- add unit and end-to-end tests,
+- lazy-load the map to reduce the initial JavaScript bundle,
+- import and export plans in a portable format.
 
-## Licencja
+## License
 
-Projekt jest udostępniany na warunkach licencji [MIT](file:///LICENSE). Szczegóły znajdują się w pliku [LICENSE](file:///LICENSE).
+This project is available under the [MIT License](LICENSE). See [LICENSE](LICENSE) for details.
