@@ -145,5 +145,5 @@ export interface AppSettings {
   selectedOpenAIModel: string;
   selectedModel: string;
   theme: 'dark' | 'light';
-  language: 'pl' | 'en';
+  language: 'pl' | 'en' | 'de' | 'ru';
 }

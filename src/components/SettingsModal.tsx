@@ -143,11 +143,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <select id="app-language" value={language} onChange={(event) => setLanguage(event.target.value as AppSettings['language'])}>
               <option value="pl">Polski</option>
               <option value="en">English</option>
+              <option value="de">Deutsch</option>
+              <option value="ru">Русский</option>
             </select>
             <span className="language-hint">
-              {language === 'en'
-                ? 'The assistant and newly generated trip plans will use English.'
-                : 'Asystent i nowe plany podróży będą używać języka polskiego.'}
+              {{
+                pl: 'Asystent i nowe plany podróży będą używać języka polskiego.',
+                en: 'The assistant and newly generated trip plans will use English.',
+                de: 'Der Assistent und neu erstellte Reisepläne werden Deutsch verwenden.',
+                ru: 'Ассистент и новые планы путешествий будут использовать русский язык.'
+              }[language]}
             </span>
           </div>
           <div className="api-info-banner">

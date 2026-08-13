@@ -142,6 +142,11 @@ export function hasAnyApiKey(): boolean {
 
 export function getAppSettings(): AppSettings {
   const provider = getAiProvider();
+  const storedLanguage = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
+  const language: AppSettings['language'] =
+    storedLanguage === 'en' || storedLanguage === 'de' || storedLanguage === 'ru'
+      ? storedLanguage
+      : 'pl';
   return {
     aiProvider: provider,
     geminiApiKey: getStoredGeminiApiKey(),
@@ -150,7 +155,7 @@ export function getAppSettings(): AppSettings {
     selectedOpenAIModel: getStoredOpenAiModel(),
     selectedModel: getStoredModel(),
     theme: (localStorage.getItem(STORAGE_KEYS.THEME) as any) || 'dark',
-    language: (localStorage.getItem(STORAGE_KEYS.LANGUAGE) as AppSettings['language']) || 'pl'
+    language
   };
 }
 

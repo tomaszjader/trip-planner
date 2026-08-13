@@ -10,6 +10,17 @@ import {
   getAppSettings
 } from './storageService';
 
+const OUTPUT_LANGUAGE_NAMES: Record<ReturnType<typeof getAppSettings>['language'], string> = {
+  pl: 'Polish',
+  en: 'English',
+  de: 'German',
+  ru: 'Russian'
+};
+
+function getOutputLanguage(): string {
+  return OUTPUT_LANGUAGE_NAMES[getAppSettings().language];
+}
+
 /**
  * Validates and ensures coordinates are realistic GPS numbers.
  */
@@ -26,7 +37,7 @@ function sanitizeCoordinates(coords: any, fallbackCenter: { lat: number; lng: nu
  * Builds the comprehensive prompt for generating a detailed trip plan.
  */
 function buildTripPrompt(preferences: TravelPreferences): string {
-  const outputLanguage = getAppSettings().language === 'en' ? 'English' : 'Polish';
+  const outputLanguage = getOutputLanguage();
   return `
 Jesteś elitarnym przewodnikiem i planistą podróży w aplikacji VoyageAI.
 Stwórz perfekcyjny, niesamowicie szczegółowy i realistyczny plan podróży. Wszystkie treści przeznaczone dla użytkownika (tytuły, opisy, porady, etykiety i tłumaczenia) napisz w języku: ${outputLanguage}.
@@ -299,7 +310,7 @@ export async function sendChatMessage(
   const geminiKey = getStoredGeminiApiKey();
   const openAiKey = getStoredOpenAiApiKey();
 
-  const outputLanguage = getAppSettings().language === 'en' ? 'English' : 'Polish';
+  const outputLanguage = getOutputLanguage();
   const systemInstruction = `
 Jesteś przyjaznym, profesjonalnym doradcą i asystentem podróżniczym w aplikacji VoyageAI.
 Rozmawiasz z użytkownikiem wyłącznie w języku ${outputLanguage}. Twoim zadaniem jest pomóc użytkownikowi zaplanować idealną podróż poprzez naturalny dialog.
