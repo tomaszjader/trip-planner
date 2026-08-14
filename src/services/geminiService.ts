@@ -1,5 +1,6 @@
 import { TripPlan, TravelPreferences, ChatMessage, ActivitySpot } from '../types/travel';
 import { generateDynamicTrip } from './presetTrips';
+import { validateChatResponse, validateTripPlan, ValidatedChatResponse } from './aiResponseValidation';
 import {
   getAiProvider,
   getStoredGeminiApiKey,
@@ -190,8 +191,9 @@ async function generateTripWithOpenAI(apiKey: string, model: string, preferences
   const rawText = data?.choices?.[0]?.message?.content;
   if (!rawText) throw new Error('Brak odpowiedzi od OpenAI');
 
-  const parsed = JSON.parse(rawText) as TripPlan;
-  return postProcessTripPlan(parsed, preferences);
+  const parsed: unknown = JSON.parse(rawText);
+  const validated = validateTripPlan(parsed, preferences);
+  return postProcessTripPlan(validated, preferences);
 }
 
 /**
@@ -224,8 +226,9 @@ async function generateTripWithGemini(apiKey: string, model: string, preferences
   if (!rawText) throw new Error('Brak odpowiedzi od Gemini');
 
   const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-  const parsed = JSON.parse(cleanedText) as TripPlan;
-  return postProcessTripPlan(parsed, preferences);
+  const parsed: unknown = JSON.parse(cleanedText);
+  const validated = validateTripPlan(parsed, preferences);
+  return postProcessTripPlan(validated, preferences);
 }
 
 /**
@@ -305,7 +308,7 @@ export async function sendChatMessage(
   history: ChatMessage[],
   userMessage: string,
   currentPreferences: Partial<TravelPreferences>
-): Promise<{ reply: string; extractedPreferences?: Partial<TravelPreferences>; suggestions?: string[]; readyToGenerate?: boolean }> {
+): Promise<ValidatedChatResponse> {
   const provider = getAiProvider();
   const geminiKey = getStoredGeminiApiKey();
   const openAiKey = getStoredOpenAiApiKey();
@@ -358,7 +361,7 @@ Zwróć odpowiedź w czystym formacie JSON:
       if (response.ok) {
         const data = await response.json();
         const raw = data?.choices?.[0]?.message?.content;
-        if (raw) return JSON.parse(raw);
+        if (raw) return validateChatResponse(JSON.parse(raw));
       }
     } catch (e) {
       console.warn('OpenAI chat error', e);
@@ -387,8 +390,8 @@ Zwróć odpowiedź w czystym formacie JSON:
         const data = await response.json();
         const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (rawText) {
-          const parsed = JSON.parse(rawText.replace(/```json/g, '').replace(/```/g, '').trim());
-          return parsed;
+          const parsed: unknown = JSON.parse(rawText.replace(/```json/g, '').replace(/```/g, '').trim());
+          return validateChatResponse(parsed);
         }
       }
     } catch (e) {
