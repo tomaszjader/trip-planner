@@ -125,6 +125,14 @@ export interface TripPlan {
   practicalAdvice: PracticalAdvice;
 }
 
+export type GenerationSource = 'ai' | 'offline';
+
+export interface TripGenerationResult {
+  plan: TripPlan;
+  source: GenerationSource;
+  notice?: string;
+}
+
 export interface ChatMessage {
   id: string;
   sender: 'user' | 'assistant' | 'system';
@@ -139,8 +147,6 @@ export type AIProvider = 'gemini' | 'openai';
 
 export interface AppSettings {
   aiProvider: AIProvider;
-  geminiApiKey: string;
-  openaiApiKey: string;
   selectedGeminiModel: string;
   selectedOpenAIModel: string;
   selectedModel: string;

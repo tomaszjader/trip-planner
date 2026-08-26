@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AlertTriangle, Info, RefreshCw, X } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { ChatPlanner } from './components/ChatPlanner';
@@ -10,7 +11,7 @@ import { TripPlan, TravelPreferences } from './types/travel';
 import { generateTripWithAI } from './services/geminiService';
 import { 
   getSavedTrips, saveTrip, deleteSavedTrip, 
-  getActiveTrip, setActiveTrip, getAppSettings, saveAppSettings 
+  getActiveTrip, setActiveTrip, getAppSettings, saveAppSettings, clearLegacyApiKeys
 } from './services/storageService';
 
 export const App: React.FC = () => {
@@ -21,8 +22,11 @@ export const App: React.FC = () => {
   const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'dark' | 'light'>('dark');
+  const [generationMessage, setGenerationMessage] = useState<{ type: 'warning' | 'error'; text: string } | null>(null);
+  const [lastPreferences, setLastPreferences] = useState<TravelPreferences | null>(null);
 
   useEffect(() => {
+    clearLegacyApiKeys();
     const saved = getSavedTrips();
     setSavedTrips(saved);
 
@@ -45,14 +49,26 @@ export const App: React.FC = () => {
   };
 
   const handleGeneratePlan = async (preferences: TravelPreferences) => {
+    setLastPreferences(preferences);
+    setGenerationMessage(null);
     setIsGeneratingPlan(true);
     try {
-      const plan = await generateTripWithAI(preferences);
-      setActiveTripState(plan);
-      setActiveTrip(plan);
+      const result = await generateTripWithAI(preferences);
+      setActiveTripState(result.plan);
+      setActiveTrip(result.plan);
+      if (result.source === 'offline') {
+        setGenerationMessage({
+          type: 'warning',
+          text: result.notice || 'Plan utworzono w trybie offline.'
+        });
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       console.error('Failed to generate trip plan:', err);
+      setGenerationMessage({
+        type: 'error',
+        text: 'Nie udało się utworzyć planu. Sprawdź połączenie i spróbuj ponownie.'
+      });
     } finally {
       setIsGeneratingPlan(false);
     }
@@ -104,6 +120,26 @@ export const App: React.FC = () => {
       />
 
       <main className="main-content">
+        {generationMessage && (
+          <div className={`generation-alert ${generationMessage.type}`} role="alert" aria-live="polite">
+            {generationMessage.type === 'error' ? <AlertTriangle size={20} /> : <Info size={20} />}
+            <span>{generationMessage.text}</span>
+            {lastPreferences && (
+              <button
+                type="button"
+                className="alert-retry"
+                onClick={() => handleGeneratePlan(lastPreferences)}
+                disabled={isGeneratingPlan}
+              >
+                <RefreshCw size={15} className={isGeneratingPlan ? 'spinner' : ''} />
+                {isGeneratingPlan ? 'Ponawiam…' : 'Spróbuj AI ponownie'}
+              </button>
+            )}
+            <button type="button" className="alert-dismiss" onClick={() => setGenerationMessage(null)} aria-label="Zamknij komunikat">
+              <X size={17} />
+            </button>
+          </div>
+        )}
         {activeTrip ? (
           <TripView
             trip={activeTrip}
@@ -171,6 +207,35 @@ export const App: React.FC = () => {
         .main-content {
           flex: 1;
         }
+
+        .generation-alert {
+          width: min(920px, calc(100% - 40px));
+          margin: 18px auto 0;
+          padding: 13px 16px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          border: 1px solid rgba(245, 158, 11, 0.4);
+          border-radius: var(--radius-md);
+          background: rgba(245, 158, 11, 0.12);
+          color: var(--text-primary);
+          font-size: 0.88rem;
+        }
+
+        .generation-alert.error {
+          border-color: rgba(244, 63, 94, 0.45);
+          background: rgba(244, 63, 94, 0.12);
+        }
+
+        .generation-alert > span { flex: 1; }
+        .alert-retry, .alert-dismiss {
+          border: 0;
+          background: transparent;
+          color: inherit;
+          cursor: pointer;
+        }
+        .alert-retry { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+        .alert-dismiss { display: inline-flex; padding: 4px; }
 
         .app-footer {
           background: var(--bg-glass);

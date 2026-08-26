@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { X, Settings, Key, Cpu, Check, ExternalLink, ShieldCheck, AlertCircle, Sparkles } from 'lucide-react';
+import { X, Settings, Cpu, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import { AIProvider, AppSettings } from '../types/travel';
 import {
   getAiProvider, setAiProvider,
-  getStoredGeminiApiKey, setStoredGeminiApiKey,
-  getStoredOpenAiApiKey, setStoredOpenAiApiKey,
   getStoredGeminiModel, setStoredGeminiModel,
   getStoredOpenAiModel, setStoredOpenAiModel,
   getAppSettings, saveAppSettings
@@ -17,15 +15,11 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [provider, setActiveProvider] = useState<AIProvider>(getAiProvider());
-  const [geminiApiKey, setGeminiKey] = useState(getStoredGeminiApiKey());
-  const [openAiApiKey, setOpenAiKey] = useState(getStoredOpenAiApiKey());
   const [geminiModel, setGeminiModel] = useState(getStoredGeminiModel());
   const [openAiModel, setOpenAiModel] = useState(getStoredOpenAiModel());
   const [language, setLanguage] = useState<AppSettings['language']>(getAppSettings().language);
 
   const [savedSuccess, setSavedSuccess] = useState(false);
-  const [geminiTestStatus, setGeminiTestStatus] = useState<'idle' | 'testing' | 'valid' | 'invalid'>('idle');
-  const [openAiTestStatus, setOpenAiTestStatus] = useState<'idle' | 'testing' | 'valid' | 'invalid'>('idle');
 
   useEffect(() => {
     if (!isOpen) return;
@@ -47,8 +41,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   const handleSave = () => {
     setAiProvider(provider);
-    setStoredGeminiApiKey(geminiApiKey);
-    setStoredOpenAiApiKey(openAiApiKey);
     setStoredGeminiModel(geminiModel);
     setStoredOpenAiModel(openAiModel);
     saveAppSettings({ language });
@@ -59,63 +51,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
       setSavedSuccess(false);
       onClose();
     }, 900);
-  };
-
-  const handleTestGemini = async () => {
-    if (!geminiApiKey.trim()) {
-      setGeminiTestStatus('invalid');
-      return;
-    }
-
-    setGeminiTestStatus('testing');
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey.trim()}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Odpowiedz jednym słowem: OK' }] }]
-        })
-      });
-
-      if (response.ok) {
-        setGeminiTestStatus('valid');
-      } else {
-        setGeminiTestStatus('invalid');
-      }
-    } catch {
-      setGeminiTestStatus('invalid');
-    }
-  };
-
-  const handleTestOpenAI = async () => {
-    if (!openAiApiKey.trim()) {
-      setOpenAiTestStatus('invalid');
-      return;
-    }
-
-    setOpenAiTestStatus('testing');
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openAiApiKey.trim()}`
-        },
-        body: JSON.stringify({
-          model: openAiModel || 'gpt-4o-mini',
-          messages: [{ role: 'user', content: 'Odpowiedz jednym słowem: OK' }],
-          max_tokens: 5
-        })
-      });
-
-      if (response.ok) {
-        setOpenAiTestStatus('valid');
-      } else {
-        setOpenAiTestStatus('invalid');
-      }
-    } catch {
-      setOpenAiTestStatus('invalid');
-    }
   };
 
   return (
@@ -158,8 +93,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           <div className="api-info-banner">
             <ShieldCheck size={22} className="text-emerald" />
             <div>
-              <strong>Podłącz własny model AI (Google Gemini lub OpenAI)</strong>
-              <p>Wybierz preferowanego dostawcę sztucznej inteligencji i podaj klucz API, aby generować precyzyjne plany podróży z dokładnymi współrzędnymi GPS dla każdego zakątka globu.</p>
+              <strong>Klucze API są chronione po stronie serwera</strong>
+              <p>Przeglądarka zapisuje tylko wybór dostawcy i modelu. Klucze skonfiguruj w zmiennych środowiskowych serwera — nigdy nie trafiają do kodu aplikacji ani localStorage.</p>
             </div>
           </div>
 
@@ -201,50 +136,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <div className="provider-settings-card animate-fade-in">
               <div className="form-group">
                 <label className="form-label">
-                  <Key size={16} className="label-icon" />
-                  Klucz Google Gemini API:
-                </label>
-                <div className="api-input-wrapper">
-                  <input
-                    type="password"
-                    placeholder="Wklej klucz AIzaSy..."
-                    value={geminiApiKey}
-                    onChange={(e) => {
-                      setGeminiKey(e.target.value);
-                      setGeminiTestStatus('idle');
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-test-api"
-                    onClick={handleTestGemini}
-                    disabled={!geminiApiKey.trim() || geminiTestStatus === 'testing'}
-                  >
-                    {geminiTestStatus === 'testing' ? 'Sprawdzam...' : 'Testuj klucz'}
-                  </button>
-                </div>
-
-                {geminiTestStatus === 'valid' && (
-                  <span className="api-status-msg valid">
-                    <Check size={14} /> Klucz Gemini API jest aktywny i poprawny!
-                  </span>
-                )}
-                {geminiTestStatus === 'invalid' && (
-                  <span className="api-status-msg invalid">
-                    <AlertCircle size={14} /> Błąd połączenia lub nieprawidłowy klucz API.
-                  </span>
-                )}
-
-                <div className="api-help-link">
-                  <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">
-                    <span>Pobierz darmowy klucz w Google AI Studio</span>
-                    <ExternalLink size={12} />
-                  </a>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">
                   <Cpu size={16} className="label-icon" />
                   Wybierz Model Gemini:
                 </label>
@@ -263,50 +154,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           {/* OpenAI Config Section */}
           {provider === 'openai' && (
             <div className="provider-settings-card animate-fade-in">
-              <div className="form-group">
-                <label className="form-label">
-                  <Key size={16} className="label-icon" />
-                  Klucz OpenAI API:
-                </label>
-                <div className="api-input-wrapper">
-                  <input
-                    type="password"
-                    placeholder="Wklej klucz sk-proj-..."
-                    value={openAiApiKey}
-                    onChange={(e) => {
-                      setOpenAiKey(e.target.value);
-                      setOpenAiTestStatus('idle');
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-secondary btn-test-api"
-                    onClick={handleTestOpenAI}
-                    disabled={!openAiApiKey.trim() || openAiTestStatus === 'testing'}
-                  >
-                    {openAiTestStatus === 'testing' ? 'Sprawdzam...' : 'Testuj klucz'}
-                  </button>
-                </div>
-
-                {openAiTestStatus === 'valid' && (
-                  <span className="api-status-msg valid">
-                    <Check size={14} /> Klucz OpenAI API jest aktywny i poprawny!
-                  </span>
-                )}
-                {openAiTestStatus === 'invalid' && (
-                  <span className="api-status-msg invalid">
-                    <AlertCircle size={14} /> Błąd połączenia lub nieprawidłowy klucz OpenAI.
-                  </span>
-                )}
-
-                <div className="api-help-link">
-                  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noreferrer">
-                    <span>Zarządzaj kluczami API w OpenAI Platform</span>
-                    <ExternalLink size={12} />
-                  </a>
-                </div>
-              </div>
-
               <div className="form-group">
                 <label className="form-label">
                   <Cpu size={16} className="label-icon" />

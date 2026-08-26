@@ -1,13 +1,10 @@
-import { TripPlan, TravelPreferences, ChatMessage, ActivitySpot } from '../types/travel';
+import { TripPlan, TripGenerationResult, TravelPreferences, ChatMessage, ActivitySpot } from '../types/travel';
 import { generateDynamicTrip } from './presetTrips';
 import { validateChatResponse, validateTripPlan, ValidatedChatResponse } from './aiResponseValidation';
 import {
   getAiProvider,
-  getStoredGeminiApiKey,
-  getStoredOpenAiApiKey,
   getStoredGeminiModel,
   getStoredOpenAiModel,
-  hasAnyApiKey,
   getAppSettings
 } from './storageService';
 
@@ -263,42 +260,31 @@ function postProcessTripPlan(plan: TripPlan, preferences: TravelPreferences): Tr
  * Main entry point: Generates a full TripPlan using the active AI provider (Gemini or OpenAI),
  * or falls back gracefully to the rich offline verified travel database.
  */
-export async function generateTripWithAI(preferences: TravelPreferences): Promise<TripPlan> {
+export async function generateTripWithAI(preferences: TravelPreferences): Promise<TripGenerationResult> {
   const provider = getAiProvider();
-  const geminiKey = getStoredGeminiApiKey();
-  const openAiKey = getStoredOpenAiApiKey();
+  const model = provider === 'openai' ? getStoredOpenAiModel() : getStoredGeminiModel();
 
-  // 1. Try with selected provider if key exists
-  if (provider === 'openai' && openAiKey) {
-    try {
-      const model = getStoredOpenAiModel();
-      return await generateTripWithOpenAI(openAiKey, model, preferences);
-    } catch (err) {
-      console.warn('OpenAI generation failed, trying fallback:', err);
-    }
+  try {
+    const response = await fetch('/api/trips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, model, prompt: buildTripPrompt(preferences) })
+    });
+
+    if (!response.ok) throw new Error(`Backend AI error ${response.status}`);
+    const parsed: unknown = await response.json();
+    const validated = validateTripPlan(parsed, preferences);
+    return { plan: postProcessTripPlan(validated, preferences), source: 'ai' };
+  } catch (err) {
+    console.warn('Backend AI unavailable, using offline generator:', err);
   }
 
-  if (geminiKey) {
-    try {
-      const model = getStoredGeminiModel();
-      return await generateTripWithGemini(geminiKey, model, preferences);
-    } catch (err) {
-      console.warn('Gemini generation failed, trying fallback:', err);
-    }
-  }
-
-  if (openAiKey) {
-    try {
-      const model = getStoredOpenAiModel();
-      return await generateTripWithOpenAI(openAiKey, model, preferences);
-    } catch (err) {
-      console.warn('Secondary OpenAI generation failed:', err);
-    }
-  }
-
-  // 2. High-quality offline verified generator
   await new Promise(resolve => setTimeout(resolve, 800));
-  return generateDynamicTrip(preferences);
+  return {
+    plan: generateDynamicTrip(preferences),
+    source: 'offline',
+    notice: 'Serwer AI jest niedostępny lub nie ma skonfigurowanego klucza. Utworzono plan w trybie offline.'
+  };
 }
 
 /**
@@ -310,8 +296,6 @@ export async function sendChatMessage(
   currentPreferences: Partial<TravelPreferences>
 ): Promise<ValidatedChatResponse> {
   const provider = getAiProvider();
-  const geminiKey = getStoredGeminiApiKey();
-  const openAiKey = getStoredOpenAiApiKey();
 
   const outputLanguage = getOutputLanguage();
   const systemInstruction = `
@@ -338,65 +322,17 @@ Zwróć odpowiedź w czystym formacie JSON:
 
   const conversationContext = `Historia rozmowy:\n${history.map(m => `${m.sender}: ${m.text}`).join('\n')}\nUżytkownik: ${userMessage}\nAktualnie zebrane preferencje: ${JSON.stringify(currentPreferences)}`;
 
-  // Try OpenAI chat if active
-  if (provider === 'openai' && openAiKey) {
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${openAiKey}`
-        },
-        body: JSON.stringify({
-          model: getStoredOpenAiModel() || 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemInstruction },
-            { role: 'user', content: conversationContext }
-          ],
-          response_format: { type: 'json_object' },
-          temperature: 0.7
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const raw = data?.choices?.[0]?.message?.content;
-        if (raw) return validateChatResponse(JSON.parse(raw));
-      }
-    } catch (e) {
-      console.warn('OpenAI chat error', e);
-    }
-  }
-
-  // Try Gemini chat
-  if (geminiKey) {
-    try {
-      const targetModel = getStoredGeminiModel() || 'gemini-2.0-flash';
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${geminiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            { role: 'user', parts: [{ text: `${systemInstruction}\n\n${conversationContext}` }] }
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            responseMimeType: 'application/json'
-          }
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawText) {
-          const parsed: unknown = JSON.parse(rawText.replace(/```json/g, '').replace(/```/g, '').trim());
-          return validateChatResponse(parsed);
-        }
-      }
-    } catch (e) {
-      console.warn('Gemini chat failed, using local assistant logic', e);
-    }
+  try {
+    const model = provider === 'openai' ? getStoredOpenAiModel() : getStoredGeminiModel();
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider, model, systemInstruction, conversationContext })
+    });
+    if (!response.ok) throw new Error(`Backend AI error ${response.status}`);
+    return validateChatResponse(await response.json());
+  } catch (e) {
+    console.warn('Backend chat unavailable, using local assistant:', e);
   }
 
   // Local Intelligent Chatbot Fallback

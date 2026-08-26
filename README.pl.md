@@ -32,7 +32,7 @@ VoyageAI to aplikacja webowa do tworzenia spersonalizowanych planów podróży. 
 - Node.js 18 lub nowszy
 - npm
 
-Klucz API nie jest wymagany do uruchomienia aplikacji. Bez niego VoyageAI korzysta z lokalnych danych i generatora zapasowego. Własny klucz Gemini lub OpenAI umożliwia generowanie bardziej dopasowanych planów.
+Klucz API nie jest wymagany do uruchomienia aplikacji. Bez niego VoyageAI korzysta z lokalnych danych i wyraźnie oznaczonego generatora zapasowego. Klucze Gemini i OpenAI są odczytywane wyłącznie przez serwer Node i nigdy nie trafiają do przeglądarki.
 
 ## Uruchomienie lokalne
 
@@ -47,20 +47,19 @@ Vite wyświetli w terminalu lokalny adres aplikacji, zwykle `http://localhost:51
 
 ## Konfiguracja AI
 
-1. Uruchom aplikację.
-2. Otwórz **Ustawienia AI** w górnym pasku.
-3. Wybierz Google Gemini lub OpenAI.
-4. Wklej własny klucz API i wybierz model.
-5. Opcjonalnie użyj przycisku testowania klucza, a następnie zapisz ustawienia.
+1. Skopiuj `.env.example` jako `.env`.
+2. Ustaw `GEMINI_API_KEY` lub `OPENAI_API_KEY` w pliku `.env`.
+3. Uruchom `npm run dev` — polecenie startuje frontend i lokalny backend.
+4. W **Ustawieniach AI** wybierz dostawcę i model.
 
-Klucze i ustawienia są przechowywane wyłącznie w `localStorage` bieżącej przeglądarki. To wygodne rozwiązanie dla lokalnego projektu demonstracyjnego, ale aplikacja produkcyjna powinna wysyłać zapytania do dostawcy AI przez własny backend, aby nie udostępniać klucza kodowi działającemu w przeglądarce.
+Plik `.env` jest ignorowany przez Git. Na hostingu ustaw te same wartości jako sekrety/zmienne środowiskowe serwera. Statyczny GitHub Pages nie uruchamia endpointów Node, dlatego na nim aplikacja automatycznie korzysta z trybu offline.
 
 ## Dostępne komendy
 
 ```bash
 npm run dev      # serwer deweloperski
 npm run build    # sprawdzenie TypeScript i build produkcyjny
-npm run preview  # lokalny podgląd buildu produkcyjnego
+npm run preview  # backend i lokalny podgląd buildu produkcyjnego
 npm run deploy   # manualne wdrożenie na GitHub Pages (gałąź gh-pages)
 ```
 
@@ -102,7 +101,7 @@ trip-planner/
 
 ## Dane użytkownika
 
-Zapisane wyjazdy, aktywny plan, motyw, wybrany dostawca AI i klucze API znajdują się w `localStorage`. Wyczyszczenie danych witryny w przeglądarce usuwa te informacje. Projekt nie posiada obecnie synchronizacji kont ani zewnętrznej bazy danych.
+Zapisane wyjazdy, aktywny plan, motyw oraz wybrany dostawca i model AI znajdują się w `localStorage`. Klucze API pozostają wyłącznie po stronie serwera. Wyczyszczenie danych witryny usuwa lokalnie zapisane plany i ustawienia.
 
 ## Build produkcyjny
 

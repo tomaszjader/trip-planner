@@ -4,13 +4,16 @@ const STORAGE_KEYS = {
   SAVED_TRIPS: 'voyage_ai_saved_trips',
   ACTIVE_TRIP: 'voyage_ai_active_trip',
   AI_PROVIDER: 'voyage_ai_provider',
-  GEMINI_API_KEY: 'voyage_ai_gemini_api_key',
-  OPENAI_API_KEY: 'voyage_ai_openai_api_key',
   GEMINI_MODEL: 'voyage_ai_gemini_model',
   OPENAI_MODEL: 'voyage_ai_openai_model',
   THEME: 'voyage_ai_theme',
   LANGUAGE: 'voyage_ai_language'
 };
+
+export function clearLegacyApiKeys(): void {
+  localStorage.removeItem('voyage_ai_gemini_api_key');
+  localStorage.removeItem('voyage_ai_openai_api_key');
+}
 
 export function getSavedTrips(): TripPlan[] {
   try {
@@ -75,37 +78,6 @@ export function setAiProvider(provider: AIProvider): void {
   localStorage.setItem(STORAGE_KEYS.AI_PROVIDER, provider);
 }
 
-export function getStoredGeminiApiKey(): string {
-  return localStorage.getItem(STORAGE_KEYS.GEMINI_API_KEY) || '';
-}
-
-export function setStoredGeminiApiKey(key: string): void {
-  localStorage.setItem(STORAGE_KEYS.GEMINI_API_KEY, key.trim());
-}
-
-export function getStoredOpenAiApiKey(): string {
-  return localStorage.getItem(STORAGE_KEYS.OPENAI_API_KEY) || '';
-}
-
-export function setStoredOpenAiApiKey(key: string): void {
-  localStorage.setItem(STORAGE_KEYS.OPENAI_API_KEY, key.trim());
-}
-
-// Backward compatibility helper
-export function getStoredApiKey(): string {
-  const provider = getAiProvider();
-  return provider === 'openai' ? getStoredOpenAiApiKey() : getStoredGeminiApiKey();
-}
-
-export function setStoredApiKey(key: string): void {
-  const provider = getAiProvider();
-  if (provider === 'openai') {
-    setStoredOpenAiApiKey(key);
-  } else {
-    setStoredGeminiApiKey(key);
-  }
-}
-
 export function getStoredGeminiModel(): string {
   return localStorage.getItem(STORAGE_KEYS.GEMINI_MODEL) || 'gemini-2.0-flash';
 }
@@ -136,10 +108,6 @@ export function setStoredModel(model: string): void {
   }
 }
 
-export function hasAnyApiKey(): boolean {
-  return !!getStoredGeminiApiKey() || !!getStoredOpenAiApiKey();
-}
-
 export function getAppSettings(): AppSettings {
   const provider = getAiProvider();
   const storedLanguage = localStorage.getItem(STORAGE_KEYS.LANGUAGE);
@@ -149,8 +117,6 @@ export function getAppSettings(): AppSettings {
       : 'pl';
   return {
     aiProvider: provider,
-    geminiApiKey: getStoredGeminiApiKey(),
-    openaiApiKey: getStoredOpenAiApiKey(),
     selectedGeminiModel: getStoredGeminiModel(),
     selectedOpenAIModel: getStoredOpenAiModel(),
     selectedModel: getStoredModel(),
@@ -161,8 +127,6 @@ export function getAppSettings(): AppSettings {
 
 export function saveAppSettings(settings: Partial<AppSettings>): void {
   if (settings.aiProvider !== undefined) setAiProvider(settings.aiProvider);
-  if (settings.geminiApiKey !== undefined) setStoredGeminiApiKey(settings.geminiApiKey);
-  if (settings.openaiApiKey !== undefined) setStoredOpenAiApiKey(settings.openaiApiKey);
   if (settings.selectedGeminiModel !== undefined) setStoredGeminiModel(settings.selectedGeminiModel);
   if (settings.selectedOpenAIModel !== undefined) setStoredOpenAiModel(settings.selectedOpenAIModel);
   if (settings.theme !== undefined) localStorage.setItem(STORAGE_KEYS.THEME, settings.theme);
