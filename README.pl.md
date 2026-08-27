@@ -91,7 +91,7 @@ trip-planner/
 │   ├── services/         # integracje AI, dane przykładowe i localStorage
 │   ├── types/            # typy danych planu podróży
 │   ├── App.tsx           # główny przepływ aplikacji
-│   ├── index.css         # globalny system wizualny
+│   ├── index.scss        # globalny system wizualny
 │   └── main.tsx          # punkt wejścia React
 ├── index.html
 ├── package.json

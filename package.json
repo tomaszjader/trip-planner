@@ -36,6 +36,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^10.0.5",
     "gh-pages": "^6.3.0",
+    "sass": "^1.103.1",
     "typescript": "^5.7.3",
     "vite": "^6.1.0"
   }
