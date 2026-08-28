@@ -23,6 +23,7 @@ const activitySchema = z.object({
   coordinates: coordinatesSchema,
   address: optionalText,
   imageUrl: z.string().url().optional(),
+  sourceUrl: z.string().url().optional(),
   transitToNext: optionalText
 });
 
@@ -65,7 +66,8 @@ const tripPlanSchema = z.object({
       recommendedDish: shortText,
       priceRange: z.enum(['$', '$$', '$$$', '$$$$']),
       address: shortText,
-      coordinates: coordinatesSchema
+      coordinates: coordinatesSchema,
+      sourceUrl: z.string().url().optional()
     })).max(30)
   }),
   budget: z.object({

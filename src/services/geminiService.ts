@@ -57,6 +57,7 @@ ${preferences.startingLocation ? `- Punkt startowy: ${preferences.startingLocati
 KRYTYCZNIE WAŻNE DLA MAPY:
 Każda atrakcja (activity) i restauracja (restaurant) MUSI posiadać DOKŁADNE, PRAWDZIWE współrzędne geograficzne GPS ("coordinates": { "lat": number, "lng": number }) odpowiadające rzeczywistej lokalizacji tego miejsca na Ziemi.
 Również "centerCoordinates" musi być dokładnym centrum ${preferences.destination}.
+Jeśli znasz oficjalną stronę atrakcji lub restauracji, dodaj "sourceUrl" z pełnym adresem https://. Nie wymyślaj linków: jeśli nie masz pewnego źródła, pomiń to pole. Ceny, godziny i dostępność zawsze oznacz jako orientacyjne w opisie lub poradzie.
 
 Struktura JSON:
 {

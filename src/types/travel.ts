@@ -42,6 +42,8 @@ export interface ActivitySpot {
   coordinates: { lat: number; lng: number };
   address?: string;
   imageUrl?: string;
+  /** Optional official/verification source supplied by the provider. */
+  sourceUrl?: string;
   transitToNext?: string;
 }
 
@@ -73,6 +75,8 @@ export interface RestaurantSpot {
   priceRange: '$' | '$$' | '$$$' | '$$$$';
   address: string;
   coordinates: { lat: number; lng: number };
+  /** Optional official/verification source supplied by the provider. */
+  sourceUrl?: string;
 }
 
 export interface TravelBudgetBreakdown {

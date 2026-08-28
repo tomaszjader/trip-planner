@@ -121,6 +121,11 @@ export const CulinaryGuide: React.FC<CulinaryGuideProps> = ({ trip }) => {
                   <span>{rest.address}</span>
                 </div>
               )}
+              {rest.sourceUrl && (
+                <a className="rest-address source-link" href={rest.sourceUrl} target="_blank" rel="noreferrer">
+                  Oficjalne źródło ↗
+                </a>
+              )}
             </div>
           ))}
         </div>

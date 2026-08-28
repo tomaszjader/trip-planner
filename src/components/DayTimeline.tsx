@@ -230,6 +230,11 @@ export const DayTimeline: React.FC<DayTimelineProps> = ({
                             <span>{activity.address}</span>
                           </div>
                         )}
+                        {activity.sourceUrl && (
+                          <a className="meta-item source-link" href={activity.sourceUrl} target="_blank" rel="noreferrer">
+                            Oficjalne źródło ↗
+                          </a>
+                        )}
                       </div>
 
                       {activity.transitToNext && (

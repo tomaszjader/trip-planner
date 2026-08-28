@@ -108,6 +108,10 @@ export const TripView: React.FC<TripViewProps> = ({
         </div>
       </div>
 
+      <div className="trip-data-notice" role="note">
+        Dane planu są sugestiami wygenerowanymi przez AI. Przed wyjazdem sprawdź aktualne ceny, godziny otwarcia, adresy i dostępność w oficjalnych źródłach.
+      </div>
+
       <div className="trip-tabs-container glass-panel no-print">
         {[
           { key: 'timeline', label: 'Harmonogram Dzień po Dniu', icon: Calendar, count: `${trip.days.length} dni` },
@@ -155,6 +159,23 @@ export const TripView: React.FC<TripViewProps> = ({
           flex-direction: column;
           gap: 24px;
         }
+
+        .trip-data-notice {
+          padding: 12px 16px;
+          border: 1px solid rgba(245, 158, 11, 0.35);
+          border-radius: var(--radius-md);
+          background: rgba(245, 158, 11, 0.1);
+          color: var(--text-secondary);
+          font-size: 0.84rem;
+          line-height: 1.5;
+        }
+
+        .source-link {
+          color: var(--accent-cyan);
+          text-decoration: none;
+        }
+
+        .source-link:hover { text-decoration: underline; }
 
         .trip-action-bar {
           display: flex;
