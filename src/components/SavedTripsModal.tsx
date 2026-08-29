@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { X, Bookmark, Calendar, MapPin, Trash2, ArrowRight, Compass } from 'lucide-react';
 import { TripPlan } from '../types/travel';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface SavedTripsModalProps {
   isOpen: boolean;
@@ -17,27 +18,14 @@ export const SavedTripsModal: React.FC<SavedTripsModalProps> = ({
   onSelectTrip,
   onDeleteTrip
 }) => {
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]);
+  const modalRef = useModalAccessibility(isOpen, onClose);
 
   if (!isOpen) return null;
 
   return (
     <div className="modal-backdrop" onMouseDown={onClose}>
       <div
+        ref={modalRef}
         className="saved-modal-content glass-panel animate-fade-in"
         role="dialog"
         aria-modal="true"

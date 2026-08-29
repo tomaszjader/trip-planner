@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { X, Settings, Cpu, Check, ShieldCheck, Sparkles } from 'lucide-react';
 import { AIProvider, AppSettings } from '../types/travel';
 import {
@@ -7,6 +7,7 @@ import {
   getStoredOpenAiModel, setStoredOpenAiModel,
   getAppSettings, saveAppSettings
 } from '../services/storageService';
+import { useModalAccessibility } from '../hooks/useModalAccessibility';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface SettingsModalProps {
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+  const modalRef = useModalAccessibility(isOpen, onClose);
   const [provider, setActiveProvider] = useState<AIProvider>(getAiProvider());
   const [geminiModel, setGeminiModel] = useState(getStoredGeminiModel());
   const [openAiModel, setOpenAiModel] = useState(getStoredOpenAiModel());
@@ -21,21 +23,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const previousOverflow = document.body.style.overflow;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    document.body.style.overflow = 'hidden';
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -56,6 +43,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
   return (
     <div className="modal-backdrop" onMouseDown={onClose}>
       <div
+        ref={modalRef}
         className="settings-modal-content glass-panel animate-fade-in"
         role="dialog"
         aria-modal="true"
