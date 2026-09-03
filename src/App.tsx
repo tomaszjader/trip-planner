@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
 import { AlertTriangle, Info, RefreshCw, X } from 'lucide-react';
 import { Navbar } from './components/Navbar';
 import { HeroSection } from './components/HeroSection';
 import { ChatPlanner } from './components/ChatPlanner';
 import { FormWizard } from './components/FormWizard';
-import { TripView } from './components/TripView';
-import { SavedTripsModal } from './components/SavedTripsModal';
-import { SettingsModal } from './components/SettingsModal';
 import { TripPlan, TravelPreferences } from './types/travel';
 import { generateTripWithAI } from './services/geminiService';
 import { 
   getSavedTrips, saveTrip, deleteSavedTrip, 
   getActiveTrip, setActiveTrip, getAppSettings, saveAppSettings, clearLegacyApiKeys
 } from './services/storageService';
+
+// Cięższe widoki (szczególnie TripView z Leaflet) nie są potrzebne na ekranie startowym.
+// Ładujemy je dopiero po wygenerowaniu planu lub otwarciu modala.
+const TripView = lazy(() => import('./components/TripView').then(module => ({ default: module.TripView })));
+const SavedTripsModal = lazy(() => import('./components/SavedTripsModal').then(module => ({ default: module.SavedTripsModal })));
+const SettingsModal = lazy(() => import('./components/SettingsModal').then(module => ({ default: module.SettingsModal })));
 
 export const App: React.FC = () => {
   const [inputMode, setInputMode] = useState<'chat' | 'form'>('chat');
@@ -141,7 +144,8 @@ export const App: React.FC = () => {
           </div>
         )}
         {activeTrip ? (
-          <TripView
+          <Suspense fallback={<div className="route-loading" role="status">Ładowanie planu…</div>}>
+            <TripView
             trip={activeTrip}
             onBackToPlanner={() => {
               setActiveTripState(null);
@@ -150,7 +154,8 @@ export const App: React.FC = () => {
             onSaveTrip={handleSaveTrip}
             onUpdateTrip={handleUpdateTrip}
             isTripSaved={isCurrentTripSaved}
-          />
+            />
+          </Suspense>
         ) : (
           <>
             <HeroSection
@@ -181,21 +186,23 @@ export const App: React.FC = () => {
         </div>
       </footer>
 
-      <SavedTripsModal
-        isOpen={isSavedModalOpen}
-        onClose={() => setIsSavedModalOpen(false)}
-        savedTrips={savedTrips}
-        onSelectTrip={(trip) => {
-          setActiveTripState(trip);
-          setActiveTrip(trip);
-        }}
-        onDeleteTrip={handleDeleteSavedTrip}
-      />
+      <Suspense fallback={null}>
+        <SavedTripsModal
+          isOpen={isSavedModalOpen}
+          onClose={() => setIsSavedModalOpen(false)}
+          savedTrips={savedTrips}
+          onSelectTrip={(trip) => {
+            setActiveTripState(trip);
+            setActiveTrip(trip);
+          }}
+          onDeleteTrip={handleDeleteSavedTrip}
+        />
 
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-      />
+        <SettingsModal
+          isOpen={isSettingsModalOpen}
+          onClose={() => setIsSettingsModalOpen(false)}
+        />
+      </Suspense>
 
       <style>{`
         .app-layout {
@@ -206,6 +213,13 @@ export const App: React.FC = () => {
 
         .main-content {
           flex: 1;
+        }
+
+        .route-loading {
+          min-height: 50vh;
+          display: grid;
+          place-items: center;
+          color: var(--text-secondary);
         }
 
         .generation-alert {
