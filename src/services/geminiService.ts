@@ -8,6 +8,9 @@ import {
   getAppSettings
 } from './storageService';
 
+// API credentials and provider requests are kept on the server. The client
+// uses only /api/trips and /api/chat, so no key is required or persisted here.
+
 const OUTPUT_LANGUAGE_NAMES: Record<ReturnType<typeof getAppSettings>['language'], string> = {
   pl: 'Polish',
   en: 'English',
@@ -151,83 +154,7 @@ Struktura JSON:
 `;
 }
 
-/**
- * Generates trip via OpenAI API (GPT-4o, GPT-4o-mini, GPT-4.5, o3-mini).
- */
-async function generateTripWithOpenAI(apiKey: string, model: string, preferences: TravelPreferences): Promise<TripPlan> {
-  const prompt = buildTripPrompt(preferences);
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: model || 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'Jesteś ekspertem podróżniczym i zwracasz wyłącznie poprawny obiekt JSON zgodny ze strukturą TripPlan.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      response_format: { type: 'json_object' },
-      temperature: 0.7
-    })
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`OpenAI API error ${response.status}: ${errText}`);
-  }
-
-  const data = await response.json();
-  const rawText = data?.choices?.[0]?.message?.content;
-  if (!rawText) throw new Error('Brak odpowiedzi od OpenAI');
-
-  const parsed: unknown = JSON.parse(rawText);
-  const validated = validateTripPlan(parsed, preferences);
-  return postProcessTripPlan(validated, preferences);
-}
-
-/**
- * Generates trip via Google Gemini API (Gemini 2.5 Pro, 2.5 Flash, 2.0 Flash, 1.5 Pro).
- */
-async function generateTripWithGemini(apiKey: string, model: string, preferences: TravelPreferences): Promise<TripPlan> {
-  const prompt = buildTripPrompt(preferences);
-  const targetModel = model || 'gemini-2.0-flash';
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        responseMimeType: 'application/json'
-      }
-    })
-  });
-
-  if (!response.ok) {
-    const errText = await response.text();
-    throw new Error(`Gemini API error ${response.status}: ${errText}`);
-  }
-
-  const data = await response.json();
-  const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawText) throw new Error('Brak odpowiedzi od Gemini');
-
-  const cleanedText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-  const parsed: unknown = JSON.parse(cleanedText);
-  const validated = validateTripPlan(parsed, preferences);
-  return postProcessTripPlan(validated, preferences);
-}
+// Provider calls are handled exclusively by server.mjs.
 
 /**
  * Post-processes the generated trip plan, verifying coordinates and fallback fields.
